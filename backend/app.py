@@ -943,6 +943,8 @@ def register_routes(app):
             if status == "approved":
                 student.approved_at = student.approved_at or now_utc()
                 award_referral_for(student)
+            else:
+                student.approved_at = None
         if "isActive" in data:
             student.is_active = bool(data.get("isActive"))
 
@@ -984,6 +986,8 @@ def register_routes(app):
         if status == "approved":
             payment.student.approved_at = now_utc()
             award_referral_for(payment.student)
+        else:
+            payment.student.approved_at = None
         audit("payment_reviewed", request.user, {"paymentId": payment.id, "status": status})
         db.session.commit()
         return jsonify({"payment": payment.dict()})
@@ -1057,6 +1061,8 @@ def register_routes(app):
         if status == "approved":
             student.approved_at = student.approved_at or now_utc()
             award_referral_for(student)
+        else:
+            student.approved_at = None
         db.session.add(payment)
         audit("manual_payment_created", request.user, {"studentId": student.id, "amount": amount, "status": status})
         db.session.commit()
@@ -1170,7 +1176,10 @@ def register_routes(app):
     def create_payout():
         data = request.get_json(silent=True) or {}
         user = db.session.get(User, data.get("userId"))
-        amount = int(data.get("amount") or 0)
+        try:
+            amount = int(data.get("amount") or 0)
+        except (TypeError, ValueError):
+            return error("Payout amount must be a number")
         if not user or user.role not in {"student", "affiliate"}:
             return error("Referral earner not found")
         if amount <= 0:

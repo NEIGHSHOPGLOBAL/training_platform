@@ -6,6 +6,8 @@ import paymentQr from "./assets/payment-qr.png";
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:5000";
 const MAX_SUPPORT_FILE_SIZE = 5 * 1024 * 1024;
 const SUPPORT_FILE_ACCEPT = "image/png,image/jpeg,image/webp,application/pdf,.png,.jpg,.jpeg,.webp,.pdf";
+let bodyScrollLockCount = 0;
+let bodyScrollSnapshot = null;
 
 const initialAuth = () => {
   try {
@@ -267,6 +269,12 @@ function FieldIcon({ name }) {
         <path d="M14 11a5 5 0 0 0-7.1 0l-2 2A5 5 0 0 0 12 20.1l1.1-1.1" />
       </>
     ),
+    copy: (
+      <>
+        <rect x="9" y="9" width="11" height="11" rx="2" />
+        <rect x="4" y="4" width="11" height="11" rx="2" />
+      </>
+    ),
     alert: (
       <>
         <path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" />
@@ -352,8 +360,52 @@ function statusClass(status = "") {
   return String(status || "neutral").replace(/_/g, "-").toLowerCase();
 }
 
+function humanizeLabel(value = "") {
+  return String(value)
+    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+    .replace(/[_-]+/g, " ")
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
 function StatusBadge({ status }) {
   return <span className={`status-badge ${statusClass(status)}`}>{String(status || "not set").replace(/_/g, " ")}</span>;
+}
+
+function useBodyScrollLock(locked = true) {
+  useEffect(() => {
+    if (!locked) return undefined;
+
+    const body = document.body;
+    const root = document.documentElement;
+
+    if (bodyScrollLockCount === 0) {
+      const bodyStyles = window.getComputedStyle(body);
+      const scrollbarWidth = window.innerWidth - root.clientWidth;
+      bodyScrollSnapshot = {
+        bodyOverflow: body.style.overflow,
+        bodyPaddingRight: body.style.paddingRight,
+        rootOverflow: root.style.overflow,
+      };
+      body.style.overflow = "hidden";
+      root.style.overflow = "hidden";
+      if (scrollbarWidth > 0) {
+        const currentPadding = parseFloat(bodyStyles.paddingRight) || 0;
+        body.style.paddingRight = `${currentPadding + scrollbarWidth}px`;
+      }
+    }
+
+    bodyScrollLockCount += 1;
+
+    return () => {
+      bodyScrollLockCount = Math.max(0, bodyScrollLockCount - 1);
+      if (bodyScrollLockCount === 0 && bodyScrollSnapshot) {
+        body.style.overflow = bodyScrollSnapshot.bodyOverflow;
+        body.style.paddingRight = bodyScrollSnapshot.bodyPaddingRight;
+        root.style.overflow = bodyScrollSnapshot.rootOverflow;
+        bodyScrollSnapshot = null;
+      }
+    };
+  }, [locked]);
 }
 
 function validateSupportFile(file) {
@@ -628,6 +680,7 @@ function StaffLoginScreen({ roleName, onAuth, setNotice }) {
 function StudentPortal({ user, token, settings, setNotice, saveAuth }) {
   const [tab, setTab] = useState("home");
   const [dashboard, setDashboard] = useState(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const studentTabs = ["home", "materials", "codes", "reviews", "group chat", "referrals", "support"];
 
   const loadDashboard = () =>
@@ -642,32 +695,37 @@ function StudentPortal({ user, token, settings, setNotice, saveAuth }) {
   const activeUser = dashboard?.user || user;
   const locked = dashboard?.locked ?? activeUser.paymentStatus !== "approved";
   const isSupportTab = tab === "support";
+  const isReferralTab = tab === "referrals";
+  const isUtilityTab = isSupportTab || isReferralTab;
   const waitingForApproval = ["payment_submitted", "under_review"].includes(activeUser.paymentStatus);
   const changeStudentTab = (nextTab) => {
     setTab(nextTab);
+    setMobileMenuOpen(false);
   };
 
   return (
     <main className={`portal student-portal ${locked ? "is-locked" : "is-verified"}`}>
       <Sidebar title="Student Portal" tabs={studentTabs} active={tab} onChange={changeStudentTab} hideBrand />
       <section className="workspace">
-        <div key={tab} className={`student-dashboard-content ${locked && !isSupportTab ? "is-blurred" : ""}`}>
+        <div key={tab} className={`student-dashboard-content ${locked && !isUtilityTab ? "is-blurred" : ""}`}>
           <PageHeader
             title={`Welcome, ${activeUser.fullName}`}
             subtitle={`Student ID ${activeUser.studentId} | Status ${activeUser.paymentStatus}`}
           />
           {isSupportTab ? (
             <SupportPanel token={token} setNotice={setNotice} title="Student Support" />
+          ) : isReferralTab ? (
+            <ReferralPanel token={token} user={activeUser} setNotice={setNotice} />
           ) : locked ? (
             <LockedDashboardPreview activeUser={activeUser} dashboard={dashboard} settings={settings} />
           ) : (
             <UnlockingSoonScreen tab={tab} settings={settings} />
           )}
         </div>
-        {locked && !isSupportTab && waitingForApproval && (
+        {locked && !isUtilityTab && waitingForApproval && (
           <ApprovalWaitingGate activeUser={activeUser} onRefresh={loadDashboard} />
         )}
-        {locked && !isSupportTab && !waitingForApproval && (
+        {locked && !isUtilityTab && !waitingForApproval && (
           <EnrollmentGate
             token={token}
             settings={settings}
@@ -679,7 +737,60 @@ function StudentPortal({ user, token, settings, setNotice, saveAuth }) {
           />
         )}
       </section>
+      <StudentMobileNav
+        tabs={studentTabs}
+        active={tab}
+        onChange={changeStudentTab}
+        menuOpen={mobileMenuOpen}
+        setMenuOpen={setMobileMenuOpen}
+      />
     </main>
+  );
+}
+
+function StudentMobileNav({ tabs, active, onChange, menuOpen, setMenuOpen }) {
+  const bottomTabs = ["home", "materials", "referrals", "support"];
+  useBodyScrollLock(menuOpen);
+
+  return (
+    <>
+      <nav className="student-mobile-bottom-nav" aria-label="Student mobile navigation">
+        {bottomTabs.map((tab) => (
+          <button key={tab} type="button" className={active === tab ? "active" : ""} onClick={() => onChange(tab)}>
+            <FieldIcon name={iconForLabel(tab)} />
+            <span>{tab}</span>
+          </button>
+        ))}
+        <button type="button" className={menuOpen ? "active" : ""} onClick={() => setMenuOpen(!menuOpen)}>
+          <span className="hamburger-lines" aria-hidden="true"><i /><i /><i /></span>
+          <span>Menu</span>
+        </button>
+      </nav>
+
+      {menuOpen && (
+        <div className="student-mobile-menu-backdrop" role="presentation" onMouseDown={() => setMenuOpen(false)}>
+          <aside className="student-mobile-menu" role="dialog" aria-modal="true" aria-label="Student menu" onMouseDown={(event) => event.stopPropagation()}>
+            <div className="student-mobile-menu-header">
+              <div>
+                <p className="eyebrow">Student Menu</p>
+                <h2>All Sections</h2>
+              </div>
+              <button type="button" className="modal-close-button" onClick={() => setMenuOpen(false)} aria-label="Close menu">
+                <FieldIcon name="x" />
+              </button>
+            </div>
+            <div className="student-mobile-menu-grid">
+              {tabs.map((tab) => (
+                <button key={tab} type="button" className={active === tab ? "active" : ""} onClick={() => onChange(tab)}>
+                  <FieldIcon name={iconForLabel(tab)} />
+                  <span>{tab}</span>
+                </button>
+              ))}
+            </div>
+          </aside>
+        </div>
+      )}
+    </>
   );
 }
 
@@ -739,6 +850,7 @@ function UnlockingSoonScreen({ tab, settings }) {
 
 function ApprovalWaitingGate({ activeUser, onRefresh }) {
   const [refreshing, setRefreshing] = useState(false);
+  useBodyScrollLock();
 
   const refreshStatus = async () => {
     setRefreshing(true);
@@ -785,6 +897,7 @@ function EnrollmentGate({ token, settings, hasReferral, onComplete }) {
   const [message, setMessage] = useState("");
   const [step, setStep] = useState(1);
   const [isImageOpen, setIsImageOpen] = useState(false);
+  useBodyScrollLock();
 
   const original = mode === "online" ? settings.priceOnline : settings.priceOffline;
   const referral = mode === "online" ? settings.referralPriceOnline : settings.referralPriceOffline;
@@ -823,6 +936,7 @@ function EnrollmentGate({ token, settings, hasReferral, onComplete }) {
   };
 
   return (
+    <>
     <div className="gate">
       <form className="gate-card multistep-gate-card" onSubmit={submit}>
         <div className="gate-copy">
@@ -914,14 +1028,45 @@ function EnrollmentGate({ token, settings, hasReferral, onComplete }) {
         </div>
         {message && <p className="success">{message}</p>}
       </form>
-      {isImageOpen && (
-        <div className="image-lightbox" role="dialog" aria-modal="true" aria-label="Payment guide image">
-          <button className="lightbox-close" type="button" aria-label="Close image" onClick={() => setIsImageOpen(false)}>
-            <FieldIcon name="x" />
-          </button>
-          <img src={paymentLockGuide} alt="Payment approval process guide enlarged" />
-        </div>
-      )}
+    </div>
+    {isImageOpen && (
+      <ImageLightbox image={paymentLockGuide} alt="Payment approval process guide enlarged" onClose={() => setIsImageOpen(false)} />
+    )}
+    </>
+  );
+}
+
+function ImageLightbox({ image, alt, onClose }) {
+  useBodyScrollLock();
+
+  return (
+    <div className="image-lightbox" role="dialog" aria-modal="true" aria-label="Payment guide image" onMouseDown={onClose}>
+      <div className="image-lightbox-inner" onMouseDown={(event) => event.stopPropagation()}>
+        <button className="image-lightbox-close" type="button" aria-label="Close image" onClick={onClose}>
+          <FieldIcon name="x" />
+        </button>
+        <img src={image} alt={alt} />
+      </div>
+    </div>
+  );
+}
+
+function FilePreviewLightbox({ preview, onClose }) {
+  useBodyScrollLock();
+  const isImage = preview.type.startsWith("image/");
+
+  return (
+    <div className="file-lightbox" role="dialog" aria-modal="true" aria-label="File preview" onMouseDown={onClose}>
+      <div className={`file-lightbox-inner ${isImage ? "is-image" : "is-document"}`} onMouseDown={(event) => event.stopPropagation()}>
+        <button className="image-lightbox-close" type="button" aria-label="Close file preview" onClick={onClose}>
+          <FieldIcon name="x" />
+        </button>
+        {isImage ? (
+          <img src={preview.url} alt="Attachment preview" />
+        ) : (
+          <iframe src={preview.url} title="Attachment preview" />
+        )}
+      </div>
     </div>
   );
 }
@@ -932,7 +1077,7 @@ function AffiliatePortal({ user, token, setNotice }) {
       <section className="workspace">
         <PageHeader title={`Referral Partner: ${user.fullName}`} subtitle="Course access is intentionally disabled for referral partners." />
         <div className="stack">
-          <ReferralPanel token={token} user={user} />
+          <ReferralPanel token={token} user={user} setNotice={setNotice} />
           <SupportPanel token={token} setNotice={setNotice} title="Referral Partner Support" />
         </div>
       </section>
@@ -946,6 +1091,7 @@ function AdminPortal({ token, settings, setNotice }) {
   const [students, setStudents] = useState([]);
   const [payments, setPayments] = useState([]);
   const [affiliates, setAffiliates] = useState([]);
+  const [referralEarners, setReferralEarners] = useState([]);
   const [supportRequests, setSupportRequests] = useState([]);
 
   const loadAdmin = () => {
@@ -954,13 +1100,15 @@ function AdminPortal({ token, settings, setNotice }) {
       api("/api/admin/students", {}, token),
       api("/api/admin/payments", {}, token),
       api("/api/admin/affiliates", {}, token),
+      api("/api/admin/referral-report", {}, token),
       api("/api/admin/support", {}, token),
     ])
-      .then(([statsData, studentData, paymentData, affiliateData, supportData]) => {
+      .then(([statsData, studentData, paymentData, affiliateData, referralReportData, supportData]) => {
         setStats(statsData);
         setStudents(studentData.students || []);
         setPayments(paymentData.payments || []);
         setAffiliates(affiliateData.affiliates || []);
+        setReferralEarners(referralReportData.earners || []);
         setSupportRequests(supportData.requests || []);
       })
       .catch((error) => setNotice(error.message));
@@ -987,7 +1135,7 @@ function AdminPortal({ token, settings, setNotice }) {
           {tab === "dashboard" && <AdminStats stats={stats} />}
           {tab === "students" && <StudentManager students={students} payments={payments} token={token} reload={loadAdmin} setNotice={setNotice} />}
           {tab === "payments" && <PaymentsTable payments={payments} students={students} token={token} onReview={reviewPayment} reload={loadAdmin} setNotice={setNotice} />}
-          {tab === "partners" && <PartnerManager token={token} affiliates={affiliates} reload={loadAdmin} setNotice={setNotice} />}
+          {tab === "partners" && <PartnerManager token={token} affiliates={affiliates} referralEarners={referralEarners} reload={loadAdmin} setNotice={setNotice} />}
           {tab === "support" && <SupportInbox requests={supportRequests} token={token} reload={loadAdmin} setNotice={setNotice} />}
           {tab === "content" && <ContentManager token={token} setNotice={setNotice} />}
           {tab === "settings" && <SettingsManager token={token} settings={settings} setNotice={setNotice} />}
@@ -1092,35 +1240,152 @@ function ProtectedList({ title, endpoint, token, locked, dataKey }) {
   );
 }
 
-function ReferralPanel({ token, user }) {
+function InPanelTabs({ tabs, active, onChange }) {
+  return (
+    <div className="in-panel-tabs" role="tablist" aria-label="Section navigation">
+      {tabs.map((tab) => (
+        <button key={tab.id} type="button" role="tab" aria-selected={active === tab.id} className={active === tab.id ? "active" : ""} onClick={() => onChange(tab.id)}>
+          <FieldIcon name={tab.icon || iconForLabel(tab.label)} />
+          <span>{tab.label}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function ReferralPanel({ token, user, setNotice }) {
   const [data, setData] = useState(null);
+  const [error, setError] = useState("");
+  const [section, setSection] = useState("overview");
 
   useEffect(() => {
-    api("/api/referrals/me", {}, token).then(setData);
+    api("/api/referrals/me", {}, token)
+      .then((nextData) => {
+        setData(nextData);
+        setError("");
+      })
+      .catch((nextError) => setError(nextError.message));
   }, []);
 
   const wallet = data?.wallet || {};
   const referrals = data?.referrals || {};
-  const referralLink = `${window.location.origin}/register?ref=${user.referralCode}`;
+  const referralCode = data?.user?.referralCode || user.referralCode || "";
+  const referralLink = referralCode ? `${window.location.origin}/?ref=${referralCode}` : "";
+  const transactions = wallet.transactions || [];
+  const recentReferrals = referrals.recentReferrals || [];
+  const referralSections = [
+    { id: "overview", label: "Overview", icon: "dashboard" },
+    { id: "share", label: "Share", icon: "link" },
+    { id: "referrals", label: "Referrals", icon: "users" },
+    { id: "wallet", label: "Wallet", icon: "wallet" },
+  ];
+
+  const copyText = async (label, value) => {
+    if (!value) {
+      setNotice?.(`${label} is not available yet.`);
+      return;
+    }
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(value);
+      } else {
+        const textarea = document.createElement("textarea");
+        textarea.value = value;
+        textarea.setAttribute("readonly", "");
+        textarea.style.position = "fixed";
+        textarea.style.opacity = "0";
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textarea);
+      }
+      setNotice?.(`${label} copied.`);
+    } catch {
+      setNotice?.(`Unable to copy ${label.toLowerCase()}.`);
+    }
+  };
+
+  if (error) {
+    return <EmptyState title="Unable to load referrals" text={error} />;
+  }
+
+  if (!data) {
+    return <EmptyState title="Loading referral dashboard" text="Fetching your referral link, wallet, and recent referral activity." />;
+  }
 
   return (
-    <div className="stack">
-      <div className="dashboard-grid">
-        <StatCard label="Total Referrals" value={referrals.totalReferrals || 0} />
-        <StatCard label="Approved Referrals" value={referrals.approvedReferrals || 0} />
-        <StatCard label="Wallet Balance" value={formatMoney(wallet.availableBalance)} />
-        <StatCard label="Lifetime Earnings" value={formatMoney(wallet.lifetimeEarnings)} />
-      </div>
-      <article className="wide-card">
-        <p className="eyebrow"><FieldIcon name="link" /> Referral Link</p>
-        <h3>{user.referralCode}</h3>
-        <p>{referralLink}</p>
-        <button className="btn-secondary" onClick={() => navigator.clipboard.writeText(referralLink)}><FieldIcon name="link" /> Copy Link</button>
+    <div className="referral-panel-shell">
+      <article className="referral-hero-card">
+        <div>
+          <p className="eyebrow"><FieldIcon name="gift" /> Referral Dashboard</p>
+          <h2>{referralCode || "Referral code pending"}</h2>
+          <p>Share your code, track referred students, and watch wallet rewards from one simple panel.</p>
+        </div>
+        <div className="referral-hero-stats">
+          <span>Wallet<strong>{formatMoney(wallet.availableBalance)}</strong></span>
+          <span>Approved<strong>{referrals.approvedReferrals || 0}</strong></span>
+        </div>
       </article>
-      <h2 className="section-heading"><FieldIcon name="users" /> Recent Referrals</h2>
-      <DataTable rows={referrals.recentReferrals || []} columns={["studentId", "studentName", "paymentStatus", "status"]} />
-      <h2 className="section-heading"><FieldIcon name="wallet" /> Wallet Transactions</h2>
-      <DataTable rows={wallet.transactions || []} columns={["type", "amount", "studentName", "transactionId", "createdAt"]} />
+
+      <InPanelTabs tabs={referralSections} active={section} onChange={setSection} />
+
+      <div key={section} className="referral-tab-panel">
+        {section === "overview" && (
+          <div className="dashboard-grid">
+            <StatCard label="Total Referrals" value={referrals.totalReferrals || 0} />
+            <StatCard label="Approved Referrals" value={referrals.approvedReferrals || 0} />
+            <StatCard label="Pending Referrals" value={referrals.pendingPayment || 0} />
+            <StatCard label="Wallet Balance" value={formatMoney(wallet.availableBalance)} />
+            <StatCard label="Lifetime Earnings" value={formatMoney(wallet.lifetimeEarnings)} />
+            <StatCard label="Paid Amount" value={formatMoney(wallet.paidAmount)} />
+          </div>
+        )}
+
+        {section === "share" && (
+          <article className="wide-card referral-share-card">
+            <div>
+              <p className="eyebrow"><FieldIcon name="link" /> Referral Share</p>
+              <h3>{referralCode || "Referral code pending"}</h3>
+              <p>Share this code or link. Rewards are added to your wallet after referred student payments are approved.</p>
+            </div>
+            <div className="referral-copy-grid">
+              <div className="copy-box">
+                <span>Referral Code</span>
+                <strong>{referralCode || "-"}</strong>
+                <button className="btn-secondary" type="button" onClick={() => copyText("Referral code", referralCode)}>
+                  <FieldIcon name="copy" /> Copy Code
+                </button>
+              </div>
+              <div className="copy-box">
+                <span>Referral Link</span>
+                <strong>{referralLink || "-"}</strong>
+                <button className="btn-secondary" type="button" onClick={() => copyText("Referral link", referralLink)}>
+                  <FieldIcon name="link" /> Copy Link
+                </button>
+              </div>
+            </div>
+          </article>
+        )}
+
+        {section === "referrals" && (
+          <div className="stack">
+            <h2 className="section-heading"><FieldIcon name="users" /> Recent Referrals</h2>
+            <DataTable rows={recentReferrals} columns={["studentId", "studentName", "paymentStatus", "status", "createdAt"]} />
+          </div>
+        )}
+
+        {section === "wallet" && (
+          <div className="stack">
+            <div className="wallet-summary-row">
+              <StatCard label="Wallet Balance" value={formatMoney(wallet.availableBalance)} />
+              <StatCard label="Lifetime Earnings" value={formatMoney(wallet.lifetimeEarnings)} />
+              <StatCard label="Paid Amount" value={formatMoney(wallet.paidAmount)} />
+            </div>
+            <h2 className="section-heading"><FieldIcon name="wallet" /> Wallet Transactions</h2>
+            <DataTable rows={transactions} columns={["type", "amount", "studentName", "transactionId", "createdAt"]} />
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -1144,6 +1409,7 @@ function SupportPanel({ token, setNotice, title = "Support" }) {
 
   const submitSupport = async (event) => {
     event.preventDefault();
+    const formElement = event.currentTarget;
     const validation = validateSupportFile(file);
     if (validation) {
       setNotice(validation);
@@ -1157,7 +1423,7 @@ function SupportPanel({ token, setNotice, title = "Support" }) {
       await api("/api/support", { method: "POST", body: form }, token);
       setMessage("");
       setFile(null);
-      event.currentTarget.reset();
+      formElement.reset();
       setNotice("Support request sent to admin.");
     } catch (error) {
       setNotice(error.message);
@@ -1570,9 +1836,15 @@ function PaymentsTable({ payments, students, token, onReview, reload, setNotice 
                   )}
                   <td>{formatDate(payment.createdAt)}</td>
                   <td className="table-actions">
-                    <ActionButton icon="clock" onClick={() => onReview(payment.id, "under_review")}>Review</ActionButton>
-                    <ActionButton icon="check" tone="success" onClick={() => onReview(payment.id, "approved")}>Approve</ActionButton>
-                    <ActionButton icon="x" tone="danger" onClick={() => onReview(payment.id, "rejected")}>Reject</ActionButton>
+                    {payment.status === "approved" ? (
+                      <ActionButton icon="x" tone="danger" onClick={() => onReview(payment.id, "rejected")}>Disapprove</ActionButton>
+                    ) : (
+                      <>
+                        {payment.status !== "under_review" && <ActionButton icon="clock" onClick={() => onReview(payment.id, "under_review")}>Review</ActionButton>}
+                        <ActionButton icon="check" tone="success" onClick={() => onReview(payment.id, "approved")}>Approve</ActionButton>
+                        {payment.status !== "rejected" && <ActionButton icon="x" tone="danger" onClick={() => onReview(payment.id, "rejected")}>Reject</ActionButton>}
+                      </>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -1621,11 +1893,13 @@ function PaymentsTable({ payments, students, token, onReview, reload, setNotice 
   );
 }
 
-function PartnerManager({ token, affiliates, reload, setNotice }) {
+function PartnerManager({ token, affiliates, referralEarners = [], reload, setNotice }) {
   const [form, setForm] = useState({ fullName: "", username: "", password: "", phone: "", email: "" });
   const [query, setQuery] = useState("");
   const [showCreate, setShowCreate] = useState(false);
   const [editing, setEditing] = useState(null);
+  const [payoutTarget, setPayoutTarget] = useState(null);
+  const [payoutForm, setPayoutForm] = useState({ amount: "", transactionId: "", paymentMode: "upi", remarks: "" });
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -1637,6 +1911,14 @@ function PartnerManager({ token, affiliates, reload, setNotice }) {
       return !q || haystack.includes(q);
     });
   }, [affiliates, query]);
+
+  const earners = useMemo(() => referralEarners.filter((earner) => {
+    const totalReferrals = Number(earner.referrals?.totalReferrals || 0);
+    const available = Number(earner.wallet?.availableBalance || 0);
+    const lifetime = Number(earner.wallet?.lifetimeEarnings || 0);
+    return totalReferrals > 0 || available > 0 || lifetime > 0;
+  }), [referralEarners]);
+  const totalAvailablePayout = earners.reduce((sum, earner) => sum + Number(earner.wallet?.availableBalance || 0), 0);
 
   const submit = async (event) => {
     event.preventDefault();
@@ -1677,6 +1959,39 @@ function PartnerManager({ token, affiliates, reload, setNotice }) {
     }
   };
 
+  const openPayout = (earner) => {
+    setPayoutTarget(earner);
+    setPayoutForm({
+      amount: earner.wallet?.availableBalance ? String(earner.wallet.availableBalance) : "",
+      transactionId: "",
+      paymentMode: "upi",
+      remarks: "",
+    });
+  };
+
+  const submitPayout = async (event) => {
+    event.preventDefault();
+    if (!payoutTarget) return;
+    try {
+      await api("/api/admin/payouts", {
+        method: "POST",
+        body: JSON.stringify({
+          userId: payoutTarget.user.id,
+          amount: Number(payoutForm.amount),
+          transactionId: payoutForm.transactionId,
+          paymentMode: payoutForm.paymentMode,
+          remarks: payoutForm.remarks,
+        }),
+      }, token);
+      setPayoutTarget(null);
+      setPayoutForm({ amount: "", transactionId: "", paymentMode: "upi", remarks: "" });
+      setNotice("Referral payout recorded.");
+      reload();
+    } catch (error) {
+      setNotice(error.message);
+    }
+  };
+
   return (
     <div className="stack">
       <div className="partner-overview-card">
@@ -1689,6 +2004,7 @@ function PartnerManager({ token, affiliates, reload, setNotice }) {
           <span>Total<strong>{affiliates.length}</strong></span>
           <span>Active<strong>{affiliates.filter((partner) => partner.isActive).length}</strong></span>
           <span>Showing<strong>{filtered.length}</strong></span>
+          <span>Payable<strong>{formatMoney(totalAvailablePayout)}</strong></span>
         </div>
       </div>
 
@@ -1732,6 +2048,39 @@ function PartnerManager({ token, affiliates, reload, setNotice }) {
       ) : (
         <EmptyState title="No matching partners" text="Create a partner or adjust your search filter." />
       )}
+
+      <div className="admin-toolbar">
+        <p className="toolbar-title"><FieldIcon name="wallet" /> Referral Payouts</p>
+        <span className="toolbar-count">{formatMoney(totalAvailablePayout)} payable</span>
+      </div>
+
+      {earners.length ? (
+        <div className="table-wrap professional-table">
+          <table>
+            <thead>
+              <tr><th>Referrer</th><th>Role</th><th>Referral Code</th><th>Referrals</th><th>Wallet</th><th>Paid</th><th>Actions</th></tr>
+            </thead>
+            <tbody>
+              {earners.map((earner) => (
+                <tr key={earner.user.id}>
+                  <td><strong>{earner.user.fullName}</strong><br /><small>{earner.user.studentId || (earner.user.username ? `@${earner.user.username}` : earner.user.email || "-")}</small></td>
+                  <td>{earner.user.role}</td>
+                  <td><strong>{earner.user.referralCode || "-"}</strong></td>
+                  <td>{earner.referrals?.totalReferrals || 0}<br /><small>{earner.referrals?.approvedReferrals || 0} approved</small></td>
+                  <td><strong>{formatMoney(earner.wallet?.availableBalance)}</strong><br /><small>{formatMoney(earner.wallet?.lifetimeEarnings)} earned</small></td>
+                  <td>{formatMoney(earner.wallet?.paidAmount)}</td>
+                  <td className="table-actions">
+                    <ActionButton icon="wallet" tone="success" onClick={() => openPayout(earner)} disabled={Number(earner.wallet?.availableBalance || 0) <= 0}>Payout</ActionButton>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <EmptyState title="No referral payouts yet" text="Referral earners will appear here after approved referral payments." />
+      )}
+
       {showCreate && (
         <AdminModal title="Create Referral Partner" icon="users" onClose={() => setShowCreate(false)} size="wide">
           <form className="modal-form" onSubmit={submit}>
@@ -1763,6 +2112,35 @@ function PartnerManager({ token, affiliates, reload, setNotice }) {
             <div className="form-actions">
               <button className="btn-primary"><FieldIcon name="check" /> Save Partner</button>
               <button type="button" className="btn-secondary" onClick={() => setEditing(null)}>Cancel</button>
+            </div>
+          </form>
+        </AdminModal>
+      )}
+      {payoutTarget && (
+        <AdminModal title="Record Referral Payout" icon="wallet" onClose={() => setPayoutTarget(null)} size="wide">
+          <form className="modal-form" onSubmit={submitPayout}>
+            <div className="payout-target-card">
+              <span>Paying To<strong>{payoutTarget.user.fullName}</strong></span>
+              <span>Available Balance<strong>{formatMoney(payoutTarget.wallet?.availableBalance)}</strong></span>
+            </div>
+            <div className="form-two">
+              <label>Amount
+                <input required type="number" min="1" max={Math.max(0, Number(payoutTarget.wallet?.availableBalance || 0))} value={payoutForm.amount} onChange={(event) => setPayoutForm({ ...payoutForm, amount: event.target.value })} />
+              </label>
+              <label>Payment mode
+                <select value={payoutForm.paymentMode} onChange={(event) => setPayoutForm({ ...payoutForm, paymentMode: event.target.value })}>
+                  <option value="upi">UPI</option>
+                  <option value="bank">Bank transfer</option>
+                  <option value="cash">Cash</option>
+                  <option value="other">Other</option>
+                </select>
+              </label>
+              <label>Transaction ID<input placeholder="UPI / bank / payout reference" value={payoutForm.transactionId} onChange={(event) => setPayoutForm({ ...payoutForm, transactionId: event.target.value })} /></label>
+              <label>Remarks<input placeholder="Optional payout note" value={payoutForm.remarks} onChange={(event) => setPayoutForm({ ...payoutForm, remarks: event.target.value })} /></label>
+            </div>
+            <div className="form-actions">
+              <button className="btn-primary"><FieldIcon name="wallet" /> Record Payout</button>
+              <button type="button" className="btn-secondary" onClick={() => setPayoutTarget(null)}>Cancel</button>
             </div>
           </form>
         </AdminModal>
@@ -1847,9 +2225,10 @@ function ContentManager({ token, setNotice }) {
 
   const submitUpload = async (event, endpoint) => {
     event.preventDefault();
-    const form = new FormData(event.currentTarget);
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
     await api(endpoint, { method: "POST", body: form }, token);
-    event.currentTarget.reset();
+    formElement.reset();
     setNotice("Content saved.");
   };
 
@@ -1918,13 +2297,21 @@ function SettingsManager({ token, settings, setNotice }) {
     <form className="settings-grid" onSubmit={submit}>
       {["courseStartDate", "courseStatus", "enrollmentStatus", "priceOffline", "priceOnline", "referralPriceOffline", "referralPriceOnline", "referralReward"].map((field) => (
         <label key={field}>
-          {field}
+          {humanizeLabel(field)}
           <input value={form[field] ?? ""} onChange={(event) => setForm({ ...form, [field]: event.target.value })} />
         </label>
       ))}
       <button className="btn-primary"><FieldIcon name="settings" /> Save Settings</button>
     </form>
   );
+}
+
+function tableValue(column, value) {
+  if (value == null || value === "") return "-";
+  if (column.toLowerCase().includes("amount")) return formatMoney(value);
+  if (column.toLowerCase().includes("created") || column.toLowerCase().includes("date")) return formatDate(value);
+  if (column.toLowerCase().includes("status")) return String(value).replace(/_/g, " ");
+  return String(value);
 }
 
 function DataTable({ rows, columns }) {
@@ -1938,7 +2325,7 @@ function DataTable({ rows, columns }) {
         <tbody>
           {rows.map((row, index) => (
             <tr key={row.id || index}>
-              {columns.map((column) => <td key={column}>{String(row[column] ?? "-")}</td>)}
+              {columns.map((column) => <td key={column}>{tableValue(column, row[column])}</td>)}
             </tr>
           ))}
         </tbody>
@@ -1948,6 +2335,8 @@ function DataTable({ rows, columns }) {
 }
 
 function AdminModal({ title, icon = "eye", onClose, children, size = "" }) {
+  useBodyScrollLock();
+
   const closeOnBackdrop = (event) => {
     if (event.target === event.currentTarget) onClose();
   };
@@ -1996,18 +2385,7 @@ function AuthFileLink({ path, token, children }) {
         {children}
       </button>
       {preview && (
-        <AdminModal title="Uploaded Proof" icon="file" onClose={closePreview} size="wide">
-          <div className="file-preview-frame">
-            <button type="button" className="file-preview-close" onClick={closePreview} aria-label="Close proof preview">
-              <FieldIcon name="x" />
-            </button>
-            {preview.type.startsWith("image/") ? (
-              <img src={preview.url} alt="Uploaded proof preview" />
-            ) : (
-              <iframe src={preview.url} title="Uploaded proof preview" />
-            )}
-          </div>
-        </AdminModal>
+        <FilePreviewLightbox preview={preview} onClose={closePreview} />
       )}
     </>
   );
