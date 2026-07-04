@@ -642,7 +642,9 @@ a {
 }
 
 .student-form .btn-primary {
+  width: 100%;
   min-height: 58px;
+  justify-content: center;
   margin-top: 4px;
   border-radius: 12px;
   font-size: 1rem;
