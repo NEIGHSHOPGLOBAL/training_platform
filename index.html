@@ -1,0 +1,1393 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>45 Day Industry Internship Program – Neighshop Global</title>
+
+    <!-- Primary Meta Tags -->
+    <meta name="title" content="45 Day Industry Internship Program – Neighshop Global">
+    <meta name="description"
+        content="A hands-on, offline training in Narela Delhi designed to bridge the gap between learning and real-world execution. Real projects. Agency workflows. Mentorship from developers.">
+    <meta name="keywords"
+        content="internship, MERN stack, web development training, narela delhi, neighshop global, tech internship, software development program, offline training, full stack developer course">
+    <meta name="author" content="Neighshop Global">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://www.training.neighshopglobal.com/">
+    <meta property="og:title" content="45 Day Industry Internship Program – Neighshop Global">
+    <meta property="og:description"
+        content="A hands-on, offline training in Narela Delhi designed to bridge the gap between learning and real-world execution. Real projects. Agency workflows. Mentorship from developers.">
+    <!-- Replace with valid OG image link if you have one later -->
+    <meta property="og:image" content="https://github.com/AKM-dv/training.neighshopglobal.com/blob/main/preview.png?raw=true">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://www.neighshopglobal.com/">
+    <meta property="twitter:title" content="45 Day Industry Internship Program – Neighshop Global">
+    <meta property="twitter:description"
+        content="A hands-on, offline training in Narela Delhi designed to bridge the gap between learning and real-world execution. Real projects. Agency workflows. Mentorship from developers.">
+    <meta property="twitter:image" content="https://github.com/AKM-dv/training.neighshopglobal.com/blob/main/preview.png?raw=true">
+
+    <!-- Favicons -->
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚀</text></svg>">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Bebas+Neue&family=Inter:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --black: #000000;
+            --white: #ffffff;
+            --green: #a8f060;
+            --green-dark: #3a5c2a;
+            --green-btn: #22e03a;
+            --gray-card: #1a1a1a;
+            --gray-border: #2a2a2a;
+            --gray-text: #aaaaaa;
+            --font-display: 'Bebas Neue', sans-serif;
+            --font-body: 'Space Grotesk', sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background: var(--black);
+            color: var(--white);
+            font-family: var(--font-body);
+            overflow-x: hidden;
+        }
+
+        /* ── NAVBAR ── */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 60px;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--gray-border);
+        }
+
+        .nav-logo {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            letter-spacing: 2px;
+            color: var(--green);
+        }
+
+        .nav-logo img {
+            width: 56px;
+            height: 42px;
+            object-fit: contain;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 32px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--gray-text);
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 500;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: var(--white);
+        }
+
+        .nav-cta {
+            background: var(--green-btn);
+            color: var(--black);
+            padding: 10px 24px;
+            border-radius: 4px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            text-decoration: none;
+            letter-spacing: 0.5px;
+            transition: opacity 0.2s;
+        }
+
+        .nav-cta:hover {
+            opacity: 0.85;
+        }
+
+        .nav-actions {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .nav-cta-secondary {
+            background: transparent;
+            color: var(--white);
+            border: 1px solid var(--gray-border);
+            padding: 9px 24px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-decoration: none;
+            letter-spacing: 0.5px;
+            transition: all 0.2s;
+        }
+
+        .nav-cta-secondary:hover {
+            border-color: var(--white);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        /* ── HERO ── */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 120px 60px 80px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse 60% 60% at 80% 50%, rgba(168, 240, 96, 0.07) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .hero-video-bg {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 100%;
+            height: 100%;
+            transform: translate(-50%, -50%);
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        @media (min-aspect-ratio: 16/9) {
+            .hero-video-bg iframe {
+                width: 100vw;
+                height: 56.25vw;
+            }
+        }
+
+        @media (max-aspect-ratio: 16/9) {
+            .hero-video-bg iframe {
+                width: 177.78vh;
+                height: 100vh;
+            }
+        }
+
+        .hero-video-bg iframe {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border: none;
+        }
+
+        .hero-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(12, 12, 12, 0.85);
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .hero>*:not(.hero-video-bg):not(.hero-overlay) {
+            position: relative;
+            z-index: 3;
+        }
+
+        .hero-tag {
+            display: inline-block;
+            background: var(--green-dark);
+            color: var(--white);
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            padding: 6px 16px;
+            border-radius: 2px;
+            margin-bottom: 28px;
+        }
+
+        .hero-number {
+            font-family: var(--font-display);
+            font-size: clamp(120px, 20vw, 220px);
+            line-height: 0.85;
+            color: var(--green);
+            display: inline;
+        }
+
+        .hero-title-rest {
+            font-family: var(--font-display);
+            font-size: clamp(48px, 8vw, 96px);
+            line-height: 1;
+            color: var(--white);
+            letter-spacing: 2px;
+            display: block;
+            margin-top: 8px;
+        }
+
+        .hero-sub {
+            margin-top: 32px;
+            font-size: 1rem;
+            color: var(--gray-text);
+            max-width: 480px;
+            line-height: 1.7;
+        }
+
+        .hero-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 32px;
+        }
+
+        .badge {
+            border: 1px solid var(--gray-border);
+            padding: 8px 18px;
+            border-radius: 2px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--gray-text);
+            letter-spacing: 0.5px;
+        }
+
+        .hero-cta-row {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            margin-top: 40px;
+            flex-wrap: wrap;
+        }
+
+        .btn-primary {
+            background: var(--green-btn);
+            color: var(--black);
+            padding: 16px 36px;
+            border-radius: 4px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            text-decoration: none;
+            letter-spacing: 0.5px;
+            transition: transform 0.15s, opacity 0.15s;
+            display: inline-block;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            opacity: 0.9;
+        }
+
+        .btn-secondary {
+            color: var(--white);
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-decoration: none;
+            border-bottom: 1px solid var(--gray-border);
+            padding-bottom: 2px;
+            transition: border-color 0.2s;
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--green);
+        }
+
+        .hero-location {
+            margin-top: 48px;
+            font-size: 0.78rem;
+            color: var(--gray-text);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .hero-location span {
+            color: var(--green);
+        }
+
+        /* ── SECTION COMMON ── */
+        section {
+            padding: 100px 60px;
+        }
+
+        .section-label {
+            font-size: 0.7rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--green);
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .section-title {
+            font-family: var(--font-display);
+            font-size: clamp(36px, 6vw, 64px);
+            line-height: 1;
+            letter-spacing: 1px;
+            margin-bottom: 24px;
+        }
+
+        .section-desc {
+            color: var(--gray-text);
+            max-width: 560px;
+            line-height: 1.8;
+            font-size: 0.95rem;
+        }
+
+        /* ── STATS ── */
+        .stats {
+            background: var(--gray-card);
+            border-top: 1px solid var(--gray-border);
+            border-bottom: 1px solid var(--gray-border);
+            padding: 60px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1px;
+        }
+
+        .stat-item {
+            padding: 40px;
+            text-align: center;
+            border-right: 1px solid var(--gray-border);
+        }
+
+        .stat-item:last-child {
+            border-right: none;
+        }
+
+        .stat-number {
+            font-family: var(--font-display);
+            font-size: clamp(56px, 8vw, 96px);
+            color: var(--green);
+            line-height: 1;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--gray-text);
+            margin-top: 8px;
+        }
+
+        /* ── WHY CHOOSE ── */
+        .why-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1px;
+            margin-top: 60px;
+            border: 1px solid var(--gray-border);
+        }
+
+        .why-card {
+            background: var(--gray-card);
+            padding: 40px 36px;
+            border-right: 1px solid var(--gray-border);
+            border-bottom: 1px solid var(--gray-border);
+            position: relative;
+            transition: background 0.2s;
+        }
+
+        .why-card:hover {
+            background: #1e1e1e;
+        }
+
+        .why-num {
+            font-family: var(--font-display);
+            font-size: 3.5rem;
+            color: var(--gray-border);
+            line-height: 1;
+            margin-bottom: 16px;
+        }
+
+        .why-card h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--white);
+        }
+
+        .why-card p {
+            font-size: 0.85rem;
+            color: var(--gray-text);
+            line-height: 1.6;
+        }
+
+        .why-highlight {
+            background: var(--green-dark);
+            border: none !important;
+        }
+
+        .why-highlight .why-num {
+            color: rgba(168, 240, 96, 0.2);
+        }
+
+        /* ── PROGRAM STRUCTURE ── */
+        .weeks {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            margin-top: 60px;
+            border: 1px solid var(--gray-border);
+        }
+
+        .week-row {
+            display: grid;
+            grid-template-columns: 140px 1fr;
+            border-bottom: 1px solid var(--gray-border);
+            transition: background 0.2s;
+        }
+
+        .week-row:last-child {
+            border-bottom: none;
+        }
+
+        .week-row:hover {
+            background: #111;
+        }
+
+        .week-label {
+            background: var(--gray-card);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 32px 20px;
+            border-right: 1px solid var(--gray-border);
+            text-align: center;
+        }
+
+        .week-label .wnum {
+            font-family: var(--font-display);
+            font-size: 2.8rem;
+            color: var(--green);
+            line-height: 1;
+        }
+
+        .week-label .wtext {
+            font-size: 0.65rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--gray-text);
+            margin-top: 4px;
+        }
+
+        .week-content {
+            padding: 32px 40px;
+        }
+
+        .week-content h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .week-content ul {
+            list-style: none;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .week-content ul li {
+            background: var(--gray-border);
+            padding: 4px 12px;
+            border-radius: 2px;
+            font-size: 0.78rem;
+            color: var(--gray-text);
+        }
+
+        .week-special {
+            background: rgba(168, 240, 96, 0.04);
+        }
+
+        .week-special .week-label {
+            background: rgba(168, 240, 96, 0.08);
+        }
+
+        .week-special h3 {
+            color: var(--green);
+        }
+
+        /* ── PROJECTS ── */
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1px;
+            margin-top: 60px;
+            border: 1px solid var(--gray-border);
+        }
+
+        .proj-card {
+            padding: 48px 36px;
+            background: var(--gray-card);
+            border-right: 1px solid var(--gray-border);
+            position: relative;
+        }
+
+        .proj-card:last-child {
+            border-right: none;
+        }
+
+        .proj-index {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: 2px solid var(--green);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-display);
+            font-size: 1.4rem;
+            color: var(--green);
+            margin-bottom: 24px;
+        }
+
+        .proj-card h3 {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .proj-card p {
+            font-size: 0.85rem;
+            color: var(--gray-text);
+            line-height: 1.6;
+        }
+
+        .proj-card .proj-tag {
+            display: inline-block;
+            margin-top: 16px;
+            background: var(--green-dark);
+            color: var(--white);
+            font-size: 0.7rem;
+            padding: 4px 10px;
+            border-radius: 2px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        /* ── PLACEMENT BANNER ── */
+        .placement-banner {
+            margin: 0 60px;
+            border: 1px solid var(--green-dark);
+            background: rgba(168, 240, 96, 0.06);
+            padding: 36px 48px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 20px;
+            border-radius: 2px;
+        }
+
+        .placement-banner p {
+            font-size: 1.05rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            max-width: 600px;
+        }
+
+        .placement-banner span {
+            color: var(--green);
+        }
+
+        /* ── TOOLS ── */
+        .tools-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 48px;
+        }
+
+        .tool-pill {
+            background: var(--gray-card);
+            border: 1px solid var(--gray-border);
+            padding: 12px 24px;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--white);
+            transition: border-color 0.2s, color 0.2s;
+            letter-spacing: 0.3px;
+        }
+
+        .tool-pill:hover {
+            border-color: var(--green);
+            color: var(--green);
+        }
+
+        /* ── ELIGIBILITY ── */
+        .elig-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1px;
+            margin-top: 60px;
+            border: 1px solid var(--gray-border);
+        }
+
+        .elig-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 20px;
+            padding: 36px 40px;
+            background: var(--gray-card);
+            border-bottom: 1px solid var(--gray-border);
+            border-right: 1px solid var(--gray-border);
+        }
+
+        .elig-icon {
+            width: 36px;
+            height: 36px;
+            flex-shrink: 0;
+            border: 1px solid var(--green);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--green);
+            font-size: 1rem;
+            transform: rotate(45deg);
+            border-radius: 2px;
+        }
+
+        .elig-icon span {
+            transform: rotate(-45deg);
+            display: block;
+        }
+
+        .elig-content label {
+            font-size: 0.7rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--gray-text);
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        .elig-content p {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--white);
+        }
+
+        /* ── PRICING ── */
+        .pricing-section {
+            background: var(--gray-card);
+            border-top: 1px solid var(--gray-border);
+            border-bottom: 1px solid var(--gray-border);
+            padding: 100px 60px;
+            text-align: center;
+        }
+
+        .pricing-card {
+            background: linear-gradient(145deg, #161616, #0a0a0a);
+            border: 1px solid var(--gray-border);
+            border-radius: 12px;
+            padding: 48px;
+            max-width: 440px;
+            margin: 40px auto 0;
+            position: relative;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5), 0 0 40px rgba(168, 240, 96, 0.05);
+            text-align: left;
+            transition: transform 0.3s, border-color 0.3s;
+        }
+
+        .pricing-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--green-dark);
+        }
+
+        .pricing-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 4px;
+            background: var(--green);
+            border-top-left-radius: 12px;
+            border-top-right-radius: 12px;
+        }
+
+        .pricing-header {
+            text-align: center;
+            border-bottom: 1px solid var(--gray-border);
+            padding-bottom: 24px;
+            margin-bottom: 32px;
+        }
+
+        .pricing-header h3 {
+            font-size: 1.05rem;
+            color: var(--green);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .price-tag-new {
+            font-family: var(--font-display);
+            color: var(--white);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
+
+        .price-tag-new .currency {
+            font-size: 2.5rem;
+            margin-top: -24px;
+            margin-right: 8px;
+            color: var(--gray-text);
+        }
+
+        .price-tag-new .amount {
+            font-size: clamp(60px, 14vw, 90px);
+        }
+
+        .price-note-new {
+            font-size: 0.85rem;
+            color: var(--gray-text);
+            margin-top: 12px;
+        }
+
+        .pricing-features {
+            list-style: none;
+            margin-bottom: 40px;
+        }
+
+        .pricing-features li {
+            display: flex;
+            align-items: center;
+            margin-bottom: 16px;
+            font-size: 0.95rem;
+            color: var(--white);
+        }
+
+        .pricing-features .check {
+            color: var(--green);
+            margin-right: 12px;
+            font-weight: 700;
+            flex-shrink: 0;
+            font-size: 1.1rem;
+        }
+
+        /* ── FOOTER ── */
+        footer {
+            padding: 60px;
+            border-top: 1px solid var(--gray-border);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 40px;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .footer-brand .logo {
+            font-family: var(--font-display);
+            font-size: 1.6rem;
+            color: var(--green);
+            letter-spacing: 3px;
+            margin-bottom: 12px;
+        }
+
+        .footer-brand p {
+            font-size: 0.8rem;
+            color: var(--gray-text);
+            line-height: 1.7;
+            max-width: 280px;
+        }
+
+        .footer-contact h4 {
+            font-size: 0.7rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--gray-text);
+            margin-bottom: 16px;
+        }
+
+        .footer-contact a {
+            display: block;
+            color: var(--white);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-bottom: 8px;
+            transition: color 0.2s;
+        }
+
+        .footer-contact a:hover {
+            color: var(--green);
+        }
+
+        .footer-bottom {
+            width: 100%;
+            border-top: 1px solid var(--gray-border);
+            padding-top: 24px;
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .footer-bottom p {
+            font-size: 0.75rem;
+            color: var(--gray-text);
+        }
+
+        /* ── ANIMATIONS ── */
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-up {
+            animation: fadeUp 0.7s ease both;
+        }
+
+        .delay-1 {
+            animation-delay: 0.1s;
+        }
+
+        .delay-2 {
+            animation-delay: 0.25s;
+        }
+
+        .delay-3 {
+            animation-delay: 0.4s;
+        }
+
+        .delay-4 {
+            animation-delay: 0.55s;
+        }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 768px) {
+            nav {
+                padding: 16px 24px;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            section {
+                padding: 60px 24px;
+            }
+
+            .hero {
+                padding: 100px 24px 60px;
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
+                padding: 32px 24px;
+            }
+
+            .stat-item {
+                border-right: none;
+                border-bottom: 1px solid var(--gray-border);
+                padding: 28px;
+            }
+
+            .projects-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .proj-card {
+                border-right: none;
+                border-bottom: 1px solid var(--gray-border);
+            }
+
+            .week-row {
+                grid-template-columns: 80px 1fr;
+            }
+
+            .week-content {
+                padding: 20px;
+            }
+
+            .elig-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-number {
+                display: block;
+                margin-bottom: 12px;
+            }
+
+            .hero-title-rest {
+                display: block;
+                margin-left: 0;
+            }
+
+            .elig-item {
+                border-right: none;
+                grid-column: span 1 !important;
+            }
+
+            .pricing-card {
+                padding: 32px 24px;
+            }
+
+            .placement-banner {
+                margin: 0 24px;
+                padding: 24px;
+            }
+
+            footer {
+                padding: 40px 24px;
+            }
+
+            .pricing-section {
+                padding: 60px 24px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- NAVBAR -->
+    <nav>
+        <div class="nav-logo">
+            <img src="assets/neighshop-logo.png" alt="Neighshop Global logo">
+            <span>NEIGHSHOP GLOBAL</span>
+        </div>
+        <ul class="nav-links">
+            <li><a href="#about">About</a></li>
+            <li><a href="#structure">Program</a></li>
+            <li><a href="#projects">Projects</a></li>
+            <li><a href="#tools">Tools</a></li>
+            <li><a href="#pricing">Pricing</a></li>
+        </ul>
+        <div class="nav-actions">
+            <a href="Training_Brochure.pdf" download class="nav-cta-secondary">Download Brochure</a>
+            <a href="https://forms.gle/qJKwviBjb3zS3xfw9" target="_blank" class="nav-cta">Book Seat</a>
+        </div>
+    </nav>
+
+    <!-- HERO -->
+    <section class="hero">
+        <div class="hero-video-bg">
+            <iframe
+                src="https://customer-fbqjt85b2dmsrm9s.cloudflarestream.com/51797ebd2f9d10e4b0f56ff17c7d8772/iframe?poster=https%3A%2F%2Fcustomer-fbqjt85b2dmsrm9s.cloudflarestream.com%2F51797ebd2f9d10e4b0f56ff17c7d8772%2Fthumbnails%2Fthumbnail.jpg%3Ftime%3D%26height%3D600&autoplay=true&loop=true&muted=true&controls=false"
+                allow="autoplay; encrypted-media; picture-in-picture"></iframe>
+        </div>
+        <div class="hero-overlay"></div>
+        <div class="hero-tag fade-up">Offline · Narela Delhi · 2026</div>
+        <div class="fade-up delay-1">
+            <span class="hero-number" id="hero-number-anim">10</span>
+            <span class="hero-title-rest">DAY INDUSTRY<br>INTERNSHIP PROGRAM</span>
+        </div>
+        <p class="hero-sub fade-up delay-2">
+            A hands-on, offline training designed to bridge the gap between learning and real-world execution. Real
+            projects. Agency workflows. Mentorship from developers.
+        </p>
+        <div class="hero-badges fade-up delay-3">
+            <div class="badge">Practical Over Theory</div>
+            <div class="badge">Real Project-Based Learning</div>
+            <div class="badge">Agency-style Workflow</div>
+            <div class="badge">Mentorship Driven</div>
+        </div>
+        <div class="hero-cta-row fade-up delay-4">
+            <a href="https://forms.gle/qJKwviBjb3zS3xfw9" target="_blank" class="btn-primary">Book Your Seat —
+                ₹5,499</a>
+            <a href="#structure" class="btn-secondary">View Program Structure →</a>
+        </div>
+        <p class="hero-location fade-up delay-4">
+            <span>📍</span> 3rd Floor WeWork, Dayanand Tower, above DN charitable clinic, pkt-3, Sector A9, Narela, Delhi, 110040
+        </p>
+    </section>
+
+    <!-- STATS -->
+    <div class="stats">
+        <div class="stat-item">
+            <div class="stat-number">5+</div>
+            <div class="stat-label">Countries Served</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number">350+</div>
+            <div class="stat-label">Projects Delivered</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number">7+</div>
+            <div class="stat-label">Years of Experience</div>
+        </div>
+    </div>
+
+    <!-- ABOUT -->
+    <section id="about"
+        style="background: linear-gradient(rgba(12, 12, 12, 0.85), rgba(12, 12, 12, 0.85)), url('https://www.michaelpage.co.in/sites/michaelpage.co.in/files/2021-11/Web-Developer.jpeg') center/cover no-repeat;">
+        <div class="section-label">About the Program</div>
+        <h2 class="section-title">BUILD REAL<br>EXPERIENCE</h2>
+        <p class="section-desc">
+            Unlike traditional courses, this program focuses on practical development, real project exposure, and
+            industry-level workflows. You don't just learn — you build, ship, and deliver like a professional developer.
+        </p>
+        <br><br>
+        <div class="section-label">About Neighshop Global</div>
+        <p class="section-desc">
+            Neighshop Global is a software development firm established in 2021, specializing in delivering customized
+            and scalable solutions. Our expertise spans software development, mobile and web application development,
+            website creation, and API integration.
+        </p>
+    </section>
+
+    <!-- WHY CHOOSE -->
+    <section id="why" style="padding-top: 0;">
+        <div class="section-label">Why Choose Us</div>
+        <h2 class="section-title">7 REASONS TO<br>CHOOSE THIS PROGRAM</h2>
+        <div class="why-grid">
+            <div class="why-card">
+                <div class="why-num">01</div>
+                <h3>Real Client Project Exposure</h3>
+                <p>Work on actual client deliverables from day one — not simulated exercises.</p>
+            </div>
+            <div class="why-card">
+                <div class="why-num">02</div>
+                <h3>Learn by Doing Approach</h3>
+                <p>Every concept is immediately applied in code. Theory takes a back seat.</p>
+            </div>
+            <div class="why-card">
+                <div class="why-num">03</div>
+                <h3>Industry-Relevant Curriculum</h3>
+                <p>MERN stack, AI tools, deployment — skills companies actually hire for.</p>
+            </div>
+            <div class="why-card why-highlight">
+                <div class="why-num">04</div>
+                <h3>Mentorship from Developers</h3>
+                <p>Daily guidance from working professionals, not just instructors.</p>
+            </div>
+            <div class="why-card">
+                <div class="why-num">05</div>
+                <h3>Portfolio Development</h3>
+                <p>Leave with 3 mini projects + 2 major projects + 1 real client project.</p>
+            </div>
+            <div class="why-card">
+                <div class="why-num">06</div>
+                <h3>Internship Certificate</h3>
+                <p>Industry-recognized certificate from Neighshop Global upon completion.</p>
+            </div>
+            <div class="why-card" style="grid-column: span 1;">
+                <div class="why-num">07</div>
+                <h3>Placement Training & Guidance</h3>
+                <p>Resume prep, interview mock drills, and job referrals for top performers.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- PLACEMENT BANNER -->
+    <div class="placement-banner">
+        <p>🏆 <span>Best performers get the opportunity to be placed directly at Neighshop Global</span> — the company
+            running the program.</p>
+        <a href="https://forms.gle/qJKwviBjb3zS3xfw9" target="_blank" class="btn-primary">Apply Now</a>
+    </div>
+
+    <!-- PROGRAM STRUCTURE -->
+    <section id="structure">
+        <div class="section-label">Program Structure</div>
+        <h2 class="section-title">6 WEEKS.<br>ZERO FILLER.</h2>
+        <p class="section-desc">A structured 45-day journey from web basics to real client deployment.</p>
+
+        <div class="weeks">
+            <div class="week-row">
+                <div class="week-label">
+                    <div class="wnum">01</div>
+                    <div class="wtext">Week</div>
+                </div>
+                <div class="week-content">
+                    <h3>Web Development Basics</h3>
+                    <ul>
+                        <li>HTML</li>
+                        <li>CSS</li>
+                        <li>JavaScript</li>
+                        <li>Responsive Design</li>
+                        <li>Build First Website</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="week-row">
+                <div class="week-label">
+                    <div class="wnum">02</div>
+                    <div class="wtext">Week</div>
+                </div>
+                <div class="week-content">
+                    <h3>MERN Stack Overview</h3>
+                    <ul>
+                        <li>MongoDB</li>
+                        <li>Express</li>
+                        <li>React</li>
+                        <li>Node.js</li>
+                        <li>API Basics</li>
+                        <li>Mini Projects</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="week-row">
+                <div class="week-label">
+                    <div class="wnum">03</div>
+                    <div class="wtext">Week</div>
+                </div>
+                <div class="week-content">
+                    <h3>AI & Prompt Engineering</h3>
+                    <ul>
+                        <li>Smart Prompting</li>
+                        <li>AI Tools in Development</li>
+                        <li>Productivity Workflows</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="week-row">
+                <div class="week-label">
+                    <div class="wnum">04</div>
+                    <div class="wtext">Week</div>
+                </div>
+                <div class="week-content">
+                    <h3>Guided Training</h3>
+                    <ul>
+                        <li>Daily Coding Tasks</li>
+                        <li>Debugging & Code Reviews</li>
+                        <li>Team-based Work</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="week-row week-special">
+                <div class="week-label">
+                    <div class="wnum">05<br>06</div>
+                    <div class="wtext">Weeks</div>
+                </div>
+                <div class="week-content">
+                    <h3>Client Projects — Real World</h3>
+                    <ul>
+                        <li>Requirement Analysis</li>
+                        <li>Development</li>
+                        <li>Deployment</li>
+                        <li>Real Client Feedback</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- PROJECTS -->
+    <section id="projects" style="padding-top: 0;">
+        <div class="section-label">Projects & Internship</div>
+        <h2 class="section-title">WHAT YOU'LL<br>BUILD & SHIP</h2>
+        <p class="section-desc">Students work on real-world problems, simulate client requirements, and deliver projects
+            just like in a software agency environment.</p>
+
+        <div class="projects-grid">
+            <div class="proj-card">
+                <div class="proj-index">1</div>
+                <h3>3 Mini Projects</h3>
+                <p>Landing page and 2 additional UI/functional projects to solidify fundamentals.</p>
+                <span class="proj-tag">Frontend</span>
+            </div>
+            <div class="proj-card">
+                <div class="proj-index">2</div>
+                <h3>2 Major Projects</h3>
+                <p>Dynamic site with full backend integration — covering the complete MERN stack.</p>
+                <span class="proj-tag">Full Stack</span>
+            </div>
+            <div class="proj-card">
+                <div class="proj-index">3</div>
+                <h3>1+ Real Client Project</h3>
+                <p>Minimum one actual client project built from requirement gathering to deployment.</p>
+                <span class="proj-tag">Live Deployment</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- TOOLS -->
+    <section id="tools">
+        <div class="section-label">Tools & Technologies</div>
+        <h2 class="section-title">INDUSTRY STACK<br>YOU'LL MASTER</h2>
+        <div class="tools-grid">
+            <div class="tool-pill">HTML5</div>
+            <div class="tool-pill">CSS3</div>
+            <div class="tool-pill">JavaScript</div>
+            <div class="tool-pill">React JS</div>
+            <div class="tool-pill">Node.js</div>
+            <div class="tool-pill">MongoDB</div>
+            <div class="tool-pill">ChatGPT</div>
+            <div class="tool-pill">Claude AI</div>
+            <div class="tool-pill">Google Antigravity</div>
+            <div class="tool-pill">Git & GitHub</div>
+            <div class="tool-pill">Cursor</div>
+            <div class="tool-pill">Postman</div>
+            <div class="tool-pill">AWS</div>
+            <div class="tool-pill">cPanel</div>
+        </div>
+    </section>
+
+    <!-- ELIGIBILITY -->
+    <section id="eligibility" style="padding-top: 0;">
+        <div class="section-label">Eligibility & Details</div>
+        <h2 class="section-title">PROGRAM<br>DETAILS</h2>
+        <div class="elig-grid">
+            <div class="elig-item">
+                <div class="elig-icon"><span>⏱</span></div>
+                <div class="elig-content">
+                    <label>Duration</label>
+                    <p>45 Days</p>
+                </div>
+            </div>
+            <div class="elig-item">
+                <div class="elig-icon"><span>🏢</span></div>
+                <div class="elig-content">
+                    <label>Mode</label>
+                    <p>Offline — Narela Delhi</p>
+                </div>
+            </div>
+            <div class="elig-item">
+                <div class="elig-icon"><span>👥</span></div>
+                <div class="elig-content">
+                    <label>Batch Size</label>
+                    <p>Maximum 10 Students</p>
+                </div>
+            </div>
+            <div class="elig-item">
+                <div class="elig-icon"><span>🎓</span></div>
+                <div class="elig-content">
+                    <label>Eligibility</label>
+                    <p>Students / Graduates, Basic Computer Knowledge</p>
+                </div>
+            </div>
+            <div class="elig-item" style="grid-column: span 2; border-right: none;">
+                <div class="elig-icon"><span>📍</span></div>
+                <div class="elig-content">
+                    <label>Address</label>
+                    <p>3rd Floor WeWork, Dayanand Tower, above DN charitable clinic, pkt-3, Sector A9, Narela, Delhi, 110040
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- PRICING -->
+    <section class="pricing-section" id="pricing">
+        <div class="section-label">Pricing & Enrollment</div>
+        <h2 class="section-title">LIMITED SEATS.<br>FIRST-COME BASIS.</h2>
+        <p style="color: var(--gray-text); font-size: 0.9rem; margin-top: 8px;">Batch size of maximum 10 — once it's full, it's full.</p>
+
+        <div class="pricing-card">
+            <div class="pricing-header">
+                <h3>Internship Program</h3>
+                <div class="price-tag-new">
+                    <span class="currency">₹</span><span class="amount">5,499</span>
+                </div>
+                <p class="price-note-new">One-time fee for 45 Days</p>
+            </div>
+            
+            <ul class="pricing-features">
+                <li><span class="check">✓</span> Real Client Projects</li>
+                <li><span class="check">✓</span> Mentorship from Developers</li>
+                <li><span class="check">✓</span> Agency Workflow Training</li>
+                <li><span class="check">✓</span> Certificate of Completion</li>
+                <li><span class="check">✓</span> Placement Opportunity</li>
+            </ul>
+            
+            <a href="https://forms.gle/qJKwviBjb3zS3xfw9" target="_blank" class="btn-primary" style="width: 100%; display: block; text-align: center; padding: 18px 0; font-size: 1.05rem;">Book Your Seat Today</a>
+            
+            <p style="margin-top: 16px; text-align: center; color: var(--gray-text); font-size: 0.85rem;">
+                Connect at <a href="tel:+917688877547" style="color: var(--white); text-decoration: none; font-weight: 600;">+91 7688877547</a>
+            </p>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+        <div class="footer-brand">
+            <div class="logo">NEIGHSHOP GLOBAL</div>
+            <p>Don't just learn — but build real experience. A software development firm committed to creating the next
+                generation of developers.</p>
+        </div>
+        <div class="footer-contact">
+            <h4>Contact</h4>
+            <a href="tel:+917688877547">+91 7688877547</a>
+            <a href="tel:+918307802643">+91 8307802643</a>
+            <a href="https://www.neighshopglobal.com" target="_blank">www.neighshopglobal.com</a>
+        </div>
+        <div class="footer-contact">
+            <h4>Location</h4>
+            <p style="font-size: 0.82rem; color: var(--gray-text); line-height: 1.7;">3rd Floor WeWork, Dayanand Tower,<br>above DN charitable clinic, pkt-3,<br>Sector A9, Narela, Delhi, 110040</p>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2026 Neighshop Global. All rights reserved.</p>
+            <p style="color: var(--green);">Don't just learn — Build Real Experience.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const heroNum = document.getElementById("hero-number-anim");
+            if (!heroNum) return;
+
+            const targetValue = 45;
+            const startValue = 10;
+            const duration = 2000; // 2 seconds
+            let startTime = null;
+
+            function countUp(timestamp) {
+                if (!startTime) startTime = timestamp;
+                const progress = Math.min((timestamp - startTime) / duration, 1);
+
+                // Ease out cubic
+                const easeProgress = 1 - Math.pow(1 - progress, 3);
+                const currentVal = Math.floor(easeProgress * (targetValue - startValue) + startValue);
+
+                heroNum.innerText = currentVal;
+
+                if (progress < 1) {
+                    window.requestAnimationFrame(countUp);
+                } else {
+                    heroNum.innerText = targetValue;
+                }
+            }
+
+            // Start animation with a slight delay to complement fade-up CSS
+            setTimeout(() => {
+                window.requestAnimationFrame(countUp);
+            }, 300);
+        });
+    </script>
+</body>
+
+</html>

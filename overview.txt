@@ -1,0 +1,859 @@
+==========================================================
+PROJECT OVERVIEW
+Training Management & Referral Platform
+Frontend: React.js
+Backend: Python Flask
+==========================================================
+
+PROJECT PURPOSE
+----------------------------------------------------------
+
+This platform is built for managing software development training programs along with a complete referral & affiliate earning system.
+
+Students can register, verify their email using OTP, purchase training manually through QR payment, upload payment proof, wait for admin approval, and then access course resources.
+
+Apart from students, the platform also includes an independent Referral Partner Portal where affiliates can earn commission without becoming students.
+
+The system should be clean, modern, secure, scalable and production-ready.
+
+
+==========================================================
+TECH STACK
+==========================================================
+
+Frontend
+- React.js
+- Responsive UI
+- Modern Dashboard Design
+- JWT/Session based authentication
+
+Backend
+- Python Flask
+- Modular Blueprint Architecture
+- REST APIs
+- SQL Database (developer may choose suitable SQL database)
+- Secure File Upload
+- SMTP Email OTP
+
+Storage
+- Materials
+- Payment Screenshots
+- Profile Assets
+- Future Course Resources
+
+==========================================================
+USER ROLES
+==========================================================
+
+1. Admin
+
+Complete system control.
+
+Can manage:
+
+• Students
+• Referral Partners
+• Materials
+• Code Repositories
+• Payment Verification
+• Referral Wallets
+• Payouts
+• Announcements
+• Dashboard
+• Course Settings
+
+----------------------------------------------------------
+
+2. Student
+
+Can
+
+• Register
+• Verify Email using OTP
+• Login
+• Apply for Training
+• Upload Payment Screenshot
+• Wait for Approval
+• Access Dashboard after Approval
+• Download Materials
+• Access Code Repositories
+• View Announcements
+• Use Referral System
+• Track Referral Earnings
+
+----------------------------------------------------------
+
+3. Referral Partner
+
+Not a student.
+
+Created manually by Admin.
+
+Can only
+
+• Login
+• Access Referral Dashboard
+• View Referral Statistics
+• Wallet
+• Transaction History
+• Referral Link
+• Referral Code
+
+No course access.
+
+==========================================================
+AUTHENTICATION
+==========================================================
+
+Student Authentication
+
+Registration
+
+↓
+
+Email OTP Verification
+
+↓
+
+Account Created
+
+↓
+
+Session Created
+
+↓
+
+Long Login Session
+
+No password system.
+
+Login only using verified email OTP.
+
+SMTP will be used.
+
+During development,
+OTP can be displayed on screen.
+
+Production
+SMTP Email will deliver OTP.
+
+Referral Partner Login
+
+Username
+Password
+
+Admin Login
+
+Username
+Password
+
+==========================================================
+REGISTRATION FLOW
+==========================================================
+
+Student registers.
+
+Registration page supports
+
+Referral Code
+
+If referral URL contains
+
+?ref=ABCDE
+
+Referral Code automatically fills.
+
+User can
+
+Keep it
+
+OR
+
+Remove it.
+
+Only
+
+Valid Referral Code
+
+or
+
+Empty
+
+is accepted.
+
+Invalid referral code should prevent registration.
+
+Every registered student automatically receives
+
+Unique Student ID
+
+Example
+
+SD202600001
+
+Every student automatically receives
+
+Unique 5-character Referral Code
+
+Example
+
+ABCDE
+
+Referral link
+
+domain.com/register?ref=ABCDE
+
+==========================================================
+PAYMENT FLOW
+==========================================================
+
+After login
+
+Dashboard remains locked.
+
+Entire dashboard blurred.
+
+Center card displayed
+
+"Enroll to Get Access"
+
+Student selects
+
+Online
+
+or
+
+Offline
+
+Pricing
+
+Offline
+
+₹5500
+
+Online
+
+₹4500
+
+If valid referral applied
+
+Offline
+
+₹5000
+
+Online
+
+₹4000
+
+Display both original and discounted pricing attractively.
+
+Student then
+
+Views QR Code
+
+↓
+
+Pays
+
+↓
+
+Uploads Payment Screenshot
+
+↓
+
+Status changes to
+
+Payment Submitted
+
+↓
+
+Admin Verification
+
+↓
+
+Approved
+
+↓
+
+Dashboard Unlocks
+
+==========================================================
+PAYMENT STATUS
+==========================================================
+
+Registered
+
+↓
+
+Payment Submitted
+
+↓
+
+Under Review
+
+↓
+
+Approved
+
+or
+
+Rejected
+
+Rejected students can upload payment proof again.
+
+==========================================================
+AFTER APPROVAL
+==========================================================
+
+Dashboard becomes active.
+
+Blur removed.
+
+Countdown starts.
+
+Course Start Date
+
+Default
+
+20 July 2026
+
+Admin can change later.
+
+==========================================================
+STUDENT DASHBOARD
+==========================================================
+
+Navigation
+
+• Home
+• Materials
+• Codes
+• Reviews
+• Group Chat (Coming Soon)
+
+Home
+
+Shows
+
+Countdown
+
+Latest Announcement
+
+Payment Status
+
+Course Status
+
+Referral CTA
+
+Wallet Summary
+
+Upcoming Course
+
+Latest Updates
+
+==========================================================
+MATERIALS
+==========================================================
+
+Admin Upload
+
+PDF
+
+Documents
+
+Assignments
+
+Reference Files
+
+Student can
+
+View
+
+Download
+
+==========================================================
+CODES
+==========================================================
+
+Admin can upload
+
+GitHub Repository Links
+
+ZIP Files
+
+External Resources
+
+Students can access after approval.
+
+==========================================================
+ANNOUNCEMENTS
+==========================================================
+
+Admin creates announcements.
+
+Announcement types
+
+High Priority
+
+Always visible
+
+Normal
+
+Visible once every session after login.
+
+==========================================================
+GROUP CHAT
+==========================================================
+
+UI only.
+
+Development later.
+
+Dashboard should show
+
+Coming Soon.
+
+==========================================================
+REFERRAL SYSTEM
+==========================================================
+
+Every student gets
+
+Unique Referral Code
+
+Unique Referral Link
+
+Unlimited referrals allowed.
+
+Reward added ONLY after
+
+Admin approves referred student's payment.
+
+Pending registrations
+
+Visible
+
+But
+
+Do NOT generate earnings.
+
+==========================================================
+REFERRAL DASHBOARD
+==========================================================
+
+Student & Affiliate
+
+Should display
+
+Referral Code
+
+Referral Link
+
+Copy Button
+
+Share Button
+
+QR (optional future)
+
+Statistics
+
+Total Referrals
+
+Pending Payment
+
+Approved Referrals
+
+Wallet Balance
+
+Lifetime Earnings
+
+Paid Amount
+
+Remaining Balance
+
+Recent Referrals
+
+==========================================================
+WALLET SYSTEM
+==========================================================
+
+Reward
+
+₹500
+
+Per approved referral.
+
+Wallet should maintain
+
+Lifetime Earnings
+
+Already Paid
+
+Available Balance
+
+Transaction History
+
+Never directly reduce earnings.
+
+Wallet Balance
+
+=
+
+Lifetime Earnings
+
+-
+
+Paid Amount
+
+==========================================================
+PAYOUT SYSTEM
+==========================================================
+
+Admin can
+
+Mark payout
+
+Completely
+
+or
+
+Partially.
+
+Store
+
+Amount
+
+Transaction ID
+
+Payment Mode
+
+Remarks
+
+Payout Date
+
+Wallet automatically updates.
+
+Complete transaction history visible to user.
+
+==========================================================
+AFFILIATE (REFERRAL PARTNER)
+==========================================================
+
+Created manually.
+
+No registration.
+
+Admin provides
+
+Username
+
+Password
+
+Dashboard
+
+Referral Link
+
+Wallet
+
+Transactions
+
+Statistics
+
+Profile
+
+Nothing related to courses.
+
+==========================================================
+ADMIN PANEL
+==========================================================
+
+Dashboard
+
+Students
+
+Referral Partners
+
+Payment Verification
+
+Wallet Management
+
+Payouts
+
+Materials
+
+Code Repositories
+
+Announcements
+
+Course Settings
+
+Referral Reports
+
+Analytics
+
+Future Chat Management
+
+==========================================================
+ADMIN DASHBOARD CARDS
+==========================================================
+
+Total Students
+
+Pending Verification
+
+Approved Students
+
+Rejected Payments
+
+Today's Registrations
+
+Today's Payments
+
+Referral Partners
+
+Pending Wallet
+
+Total Earnings Generated
+
+Materials Uploaded
+
+Announcements
+
+==========================================================
+COURSE SETTINGS
+==========================================================
+
+Admin can change
+
+Course Start Date
+
+Course Status
+
+Enrollment Status
+
+Pricing
+
+QR Code
+
+==========================================================
+SECURITY
+==========================================================
+
+Implement
+
+Rate Limiting
+
+CSRF Protection
+
+Input Validation
+
+Server-side Validation
+
+Secure Sessions
+
+Role Based Authentication
+
+Secure File Upload
+
+Unique File Names
+
+Image Validation
+
+SQL Injection Protection
+
+XSS Protection
+
+Restricted CORS
+
+Audit Logs
+
+Session Expiry
+
+Production Ready Configuration
+
+Rate limiting should protect
+
+OTP APIs
+
+Registration
+
+Login
+
+Payment Submission
+
+Admin APIs
+
+to reduce abuse and DDoS attempts.
+
+==========================================================
+FILE UPLOADS
+==========================================================
+
+Support
+
+Payment Screenshots
+
+PDF
+
+ZIP
+
+Documents
+
+Store safely with unique filenames.
+
+==========================================================
+BACKEND STRUCTURE
+==========================================================
+
+Suggested Modules
+
+/auth
+
+/admin
+
+/student
+
+/referral
+
+/affiliate
+
+/materials
+
+/codes
+
+/payments
+
+/uploads
+
+/announcements
+
+/dashboard
+
+/settings
+
+==========================================================
+FUTURE READY
+==========================================================
+
+Architecture should support future expansion without redesign.
+
+Examples
+
+Multiple Courses
+
+Multiple Batches
+
+Recorded Videos
+
+Assignments
+
+Certificates
+
+Attendance
+
+Live Classes
+
+Notifications
+
+Placement Portal
+
+Internship Portal
+
+Mobile App
+
+AI Assistant
+
+==========================================================
+DEVELOPER NOTES
+==========================================================
+
+Focus on
+
+Clean Code
+
+Reusable Components
+
+Modular Backend
+
+Production Ready APIs
+
+Scalable Database Design
+
+Role Based Access Control
+
+Responsive UI
+
+Secure Development Practices
+
+Avoid hardcoded values.
+
+All pricing, dates, QR code, announcements and settings should be configurable from Admin Panel wherever practical.
+
+The project should be developed with long-term maintainability in mind, ensuring that future modules can be integrated with minimal changes to the existing architecture.
+
+==========================================================
+END OF OVERVIEW
+==========================================================
+
+
+
+==========================================================
+LANDING PAGE REFERENCE
+==========================================================
+
+An existing landing page (index.html) is already available and should be used as the primary design reference for the entire platform.
+
+The objective is to maintain a consistent brand identity across the complete application.
+
+The developer should reuse and adapt the following from the landing page wherever applicable:
+
+• Color palette
+• Typography
+• Buttons
+• Icons
+• Cards
+• Border radius
+• Shadows
+• Spacing
+• Animations
+• Backgrounds
+• Gradients
+• UI Components
+• Overall visual language
+
+The React application (Student Dashboard, Admin Panel, Referral Portal, Authentication Pages, etc.) should feel like a natural extension of the landing page rather than a separate product.
+
+The design system should remain consistent throughout the project.
+
+The existing landing page should NOT be rewritten from scratch. Instead, it should be used as the visual foundation while converting the application into a modern React-based dashboard experience.
+
+The landing page should continue to function as the public-facing website, while React powers the authenticated sections of the platform.
+
+The developer should extract reusable design patterns from index.html and create reusable React components to ensure consistency across all pages.
+
+Goal:
+A user should immediately recognize that the landing page and dashboard belong to the same product, with identical branding, theme, and overall user experience.
+
+==========================================================
+UI/UX EXPECTATION
+==========================================================
+
+This project is expected to have a premium, modern SaaS-style user interface rather than a basic CRUD dashboard.
+
+Preferred design characteristics:
+
+• Clean and minimal layouts
+• Modern glassmorphism where appropriate
+• Smooth animations and transitions
+• Responsive on desktop, tablet and mobile
+• Beautiful dashboard cards
+• Attractive charts and statistics
+• Professional tables with search, filters and pagination
+• Consistent spacing and typography
+• Elegant loading states and skeleton screens
+• Toast notifications for all actions
+• Confirmation dialogs for destructive actions
+• Empty state illustrations/messages
+• High-quality user experience with attention to detail
+
+The objective is to deliver a polished production-grade application, not just a functional management system.

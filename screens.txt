@@ -1,0 +1,346 @@
+============================================================
+SCREENS LIST
+Training Management & Referral Platform
+Admin Portal excluded as requested
+============================================================
+
+
+============================================================
+1. PUBLIC WEBSITE
+============================================================
+
+1.1 Landing Page
+- URL: /
+- Purpose:
+  Public-facing marketing page for the training program.
+- Main sections:
+  - Hero section
+  - Program overview
+  - Why choose this program
+  - Program structure
+  - Projects
+  - Tools and technologies
+  - Eligibility
+  - Pricing
+  - Contact/footer
+- Notes:
+  This page already exists as index.html and should remain the public website.
+
+
+============================================================
+2. STUDENT AUTHENTICATION PORTAL
+============================================================
+
+2.1 Student Register / Login Page
+- URL: /portal or /student
+- Purpose:
+  Student entry point using email OTP only.
+- Fields:
+  - Full name
+  - Email
+  - Phone number
+  - Referral code, optional
+- Actions:
+  - Send OTP
+  - Verify OTP
+  - Continue to student dashboard
+- Rules:
+  - No password login for students.
+  - If referral code exists in URL, auto-fill it.
+  - Invalid referral code should block registration.
+  - Empty referral code is allowed.
+
+2.2 OTP Verification Screen
+- Purpose:
+  Verify student email before account/session creation.
+- Fields:
+  - OTP code
+- Actions:
+  - Verify OTP
+  - Resend OTP
+- Development behavior:
+  - OTP may be shown on screen in development.
+- Production behavior:
+  - OTP should be sent by email through SMTP.
+
+
+============================================================
+3. STUDENT PORTAL
+============================================================
+
+3.1 Locked Student Dashboard
+- Purpose:
+  First dashboard state after student login before payment approval.
+- UI behavior:
+  - Dashboard content remains blurred/locked.
+  - Center card shows "Enroll to Get Access".
+- Student can:
+  - View enrollment pricing
+  - Choose online/offline mode
+  - View QR/payment instructions
+  - Upload payment screenshot
+- Status shown:
+  - Registered
+  - Payment Submitted
+  - Under Review
+  - Rejected
+- Notes:
+  If rejected, student can upload payment proof again.
+
+3.2 Payment Submission Screen
+- Purpose:
+  Allow student to submit training payment proof.
+- Fields:
+  - Training mode: Online or Offline
+  - Payment screenshot upload
+- Pricing display:
+  - Online original price
+  - Online referral discounted price
+  - Offline original price
+  - Offline referral discounted price
+- Actions:
+  - Upload payment screenshot
+  - Submit for review
+- Rules:
+  - Payment approval is done outside student portal by admin.
+  - Student dashboard unlocks only after approval.
+
+3.3 Approved Student Dashboard Home
+- Purpose:
+  Main student home screen after payment approval.
+- Cards/widgets:
+  - Countdown to course start date
+  - Latest announcement
+  - Payment status
+  - Course status
+  - Referral CTA
+  - Wallet summary
+  - Upcoming course
+  - Latest updates
+- Navigation:
+  - Home
+  - Materials
+  - Codes
+  - Reviews
+  - Group Chat
+  - Referrals/Wallet
+  - Profile
+
+3.4 Materials Screen
+- Purpose:
+  Student access to uploaded learning materials.
+- Content:
+  - PDFs
+  - Documents
+  - Assignments
+  - Reference files
+- Actions:
+  - View material
+  - Download material
+- Rules:
+  - Available only after payment approval.
+
+3.5 Code Resources Screen
+- Purpose:
+  Student access to code repositories and technical resources.
+- Content:
+  - GitHub repository links
+  - ZIP files
+  - External resources
+- Actions:
+  - Open repository
+  - Download file
+  - View external resource
+- Rules:
+  - Available only after payment approval.
+
+3.6 Announcements Screen
+- Purpose:
+  Show training updates from the team.
+- Content:
+  - High priority announcements
+  - Normal announcements
+- Rules:
+  - High priority announcements should stay visible.
+  - Normal announcements can be shown once per session/login.
+
+3.7 Referral Dashboard Screen
+- Purpose:
+  Let students share referral code and track referral performance.
+- Shows:
+  - Referral code
+  - Referral link
+  - Copy button
+  - Share button
+  - Total referrals
+  - Pending payment referrals
+  - Approved referrals
+  - Wallet balance
+  - Lifetime earnings
+  - Paid amount
+  - Remaining balance
+  - Recent referrals
+- Rules:
+  - Earnings are generated only after referred student's payment is approved.
+
+3.8 Wallet Screen
+- Purpose:
+  Display student referral earnings and payout history.
+- Shows:
+  - Lifetime earnings
+  - Already paid amount
+  - Available balance
+  - Transaction history
+- Wallet formula:
+  Available Balance = Lifetime Earnings - Paid Amount
+- Rules:
+  - Never directly reduce lifetime earnings.
+  - Payouts should appear as transaction records.
+
+3.9 Reviews Screen
+- Purpose:
+  Student reviews/testimonials area.
+- Initial state:
+  - Can show coming soon or empty state.
+- Future content:
+  - Student feedback
+  - Program reviews
+  - Success stories
+
+3.10 Group Chat Screen
+- Purpose:
+  Placeholder for future student group chat.
+- Initial state:
+  - Coming Soon
+- Future behavior:
+  - Batch chat
+  - Announcements
+  - Mentor messages
+
+3.11 Student Profile Screen
+- Purpose:
+  Student profile and account details.
+- Shows:
+  - Full name
+  - Email
+  - Phone
+  - Student ID
+  - Referral code
+  - Payment status
+  - Course mode
+- Actions:
+  - Update basic profile details, if allowed
+  - Copy referral link
+
+
+============================================================
+4. REFERRAL PARTNER PORTAL
+============================================================
+
+4.1 Referral Partner Login Screen
+- URL: /partner
+- Purpose:
+  Login screen for referral partners only.
+- Fields:
+  - Username
+  - Password
+- Rules:
+  - Referral partners are created manually.
+  - They do not register themselves.
+  - They have no course access.
+
+4.2 Referral Partner Dashboard
+- Purpose:
+  Main dashboard for independent referral partners.
+- Shows:
+  - Referral code
+  - Referral link
+  - Copy button
+  - Share button
+  - Total referrals
+  - Pending payment referrals
+  - Approved referrals
+  - Wallet balance
+  - Lifetime earnings
+  - Paid amount
+  - Remaining balance
+  - Recent referrals
+
+4.3 Referral Partner Wallet Screen
+- Purpose:
+  Display affiliate earnings and payout records.
+- Shows:
+  - Lifetime earnings
+  - Paid amount
+  - Available balance
+  - Transaction history
+- Rules:
+  - Earnings are added only after referred student payment approval.
+  - Payouts are shown as separate transaction records.
+
+4.4 Referral Partner Transactions Screen
+- Purpose:
+  Detailed transaction history for referral partner.
+- Shows:
+  - Earning transactions
+  - Payout transactions
+  - Payment mode
+  - Transaction ID
+  - Remarks
+  - Date
+
+4.5 Referral Partner Profile Screen
+- Purpose:
+  Basic partner account details.
+- Shows:
+  - Full name
+  - Username
+  - Email, if available
+  - Phone, if available
+  - Referral code
+  - Referral link
+- Actions:
+  - Copy referral link
+
+
+============================================================
+5. COMMON SYSTEM SCREENS
+============================================================
+
+5.1 Loading Screen
+- Purpose:
+  Show while API data is loading.
+- UI:
+  - Skeleton cards
+  - Loading state matching brand theme
+
+5.2 Empty State Screen
+- Purpose:
+  Show when a section has no records yet.
+- Examples:
+  - No materials uploaded yet
+  - No referrals yet
+  - No transactions yet
+
+5.3 Error State Screen
+- Purpose:
+  Show user-friendly errors.
+- Examples:
+  - Invalid OTP
+  - Invalid referral code
+  - Payment upload failed
+  - Session expired
+
+5.4 Unauthorized Screen
+- Purpose:
+  Show when user tries to access a restricted screen.
+- Rules:
+  - Student cannot access partner pages.
+  - Partner cannot access student course pages.
+  - Unauthenticated users should be redirected to the correct login page.
+
+
+============================================================
+END OF SCREENS LIST
+============================================================
+umpo vowm bsuh fjyd
