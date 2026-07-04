@@ -1114,8 +1114,8 @@ def register_routes(app):
             role="affiliate",
             full_name=full_name,
             username=username,
-            phone=data.get("phone"),
-            email=data.get("email"),
+            phone=(data.get("phone") or "").strip() or None,
+            email=(data.get("email") or "").strip().lower() or None,
             password_hash=generate_password_hash(password, method=PASSWORD_HASH_METHOD),
             referral_code=unique_referral_code(),
         )
