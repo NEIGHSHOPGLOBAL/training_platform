@@ -665,13 +665,7 @@ function StaffLoginScreen({ roleName, onAuth, setNotice }) {
               <input type="password" required placeholder="Enter password" value={login.password} onChange={(e) => setLogin({ ...login, password: e.target.value })} />
             </label>
             <button className="btn-primary">Login</button>
-            {roleName === "Admin" && <p className="muted">Default dev admin: admin / admin123</p>}
           </form>
-        <div className="login-footer">
-          <span>Role based access</span>
-          <span>Protected admin APIs</span>
-          <span>Separate URL</span>
-        </div>
       </section>
     </main>
   );
