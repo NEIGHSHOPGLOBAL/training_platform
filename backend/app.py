@@ -18,13 +18,21 @@ from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_sqlalchemy import SQLAlchemy
+from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
 
 load_dotenv()
 
 db = SQLAlchemy()
-limiter = Limiter(key_func=get_remote_address)
+limiter = Limiter(
+    key_func=get_remote_address,
+    default_limits=[
+        item.strip()
+        for item in os.getenv("RATE_LIMITS", "300 per minute,5000 per hour").split(",")
+        if item.strip()
+    ],
+)
 DEFAULT_DEV_SECRET = "dev-secret-change-before-production-32-bytes"
 
 ALLOWED_UPLOADS = {
@@ -400,12 +408,15 @@ class AuditLog(db.Model):
 
 def create_app():
     app = Flask(__name__)
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
     app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", DEFAULT_DEV_SECRET)
     app.config["JWT_SECRET"] = os.getenv("JWT_SECRET", app.config["SECRET_KEY"])
     app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL", "sqlite:///training_portal.db")
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-    app.config["MAX_CONTENT_LENGTH"] = 8 * 1024 * 1024
+    app.config["MAX_CONTENT_LENGTH"] = int(os.getenv("MAX_CONTENT_LENGTH_MB", "8")) * 1024 * 1024
     app.config["UPLOAD_FOLDER"] = os.getenv("UPLOAD_FOLDER", "uploads")
+    app.config["RATELIMIT_STORAGE_URI"] = os.getenv("RATELIMIT_STORAGE_URI", "memory://")
+    app.config["RATELIMIT_HEADERS_ENABLED"] = True
 
     Path(app.config["UPLOAD_FOLDER"]).mkdir(parents=True, exist_ok=True)
 
@@ -424,6 +435,25 @@ def create_app():
         resources={r"/api/*": {"origins": frontend_origins}},
         supports_credentials=True,
     )
+
+    @limiter.request_filter
+    def exempt_health_check():
+        return request.endpoint == "health"
+
+    @app.after_request
+    def add_security_headers(response):
+        response.headers.setdefault("X-Content-Type-Options", "nosniff")
+        response.headers.setdefault("X-Frame-Options", "DENY")
+        response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+        response.headers.setdefault("Permissions-Policy", "camera=(), microphone=(), geolocation=()")
+        response.headers.setdefault("Content-Security-Policy", "default-src 'none'; frame-ancestors 'none'")
+        if request.is_secure:
+            response.headers.setdefault("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
+        return response
+
+    @app.errorhandler(413)
+    def request_entity_too_large(_):
+        return error("Uploaded file or request body is too large", 413)
 
     register_routes(app)
 
@@ -810,6 +840,7 @@ def register_routes(app):
         return jsonify({"payments": [payment.dict() for payment in payments]})
 
     @app.post("/api/support")
+    @limiter.limit("20 per hour")
     @require_auth("student", "affiliate")
     def create_support_request():
         message = (request.form.get("message") or "").strip()
