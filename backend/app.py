@@ -14,6 +14,7 @@ from pathlib import Path
 import jwt
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request, send_from_directory
+from sqlalchemy import inspect, text
 from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
@@ -369,6 +370,65 @@ class Announcement(db.Model):
         }
 
 
+LEAD_STATUSES = {
+    "new",
+    "interested",
+    "not_interested",
+    "on_hold",
+    "lost",
+    "contacted",
+    "follow_up",
+    "converted",
+    "converted_partial",
+}
+
+LEAD_SOURCES = {
+    "manual",
+    "meta_ad",
+    "website",
+    "referral",
+    "call",
+    "whatsapp",
+    "social",
+    "other",
+}
+
+
+class Lead(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    full_name = db.Column(db.String(140), nullable=False, default="")
+    email = db.Column(db.String(180), nullable=True, index=True)
+    phone = db.Column(db.String(40), nullable=True)
+    source = db.Column(db.String(80), default="manual", nullable=False)
+    course_mode = db.Column(db.String(20), nullable=True)
+    status = db.Column(db.String(30), default="new", nullable=False, index=True)
+    notes = db.Column(db.Text, nullable=True)
+    partial_amount = db.Column(db.Integer, nullable=True)
+    is_active = db.Column(db.Boolean, default=True, nullable=False)
+    created_by_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True)
+    created_at = db.Column(db.DateTime(timezone=True), default=now_utc, nullable=False)
+    updated_at = db.Column(db.DateTime(timezone=True), default=now_utc, onupdate=now_utc, nullable=False)
+
+    created_by = db.relationship("User", foreign_keys=[created_by_id])
+
+    def dict(self):
+        return {
+            "id": self.id,
+            "fullName": self.full_name or "",
+            "email": self.email,
+            "phone": self.phone,
+            "source": self.source,
+            "courseMode": self.course_mode,
+            "status": self.status,
+            "notes": self.notes,
+            "partialAmount": self.partial_amount,
+            "isActive": self.is_active,
+            "createdBy": self.created_by.full_name if self.created_by else None,
+            "createdAt": self.created_at.isoformat(),
+            "updatedAt": self.updated_at.isoformat() if self.updated_at else None,
+        }
+
+
 class SupportRequest(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False, index=True)
@@ -459,9 +519,22 @@ def create_app():
 
     with app.app_context():
         db.create_all()
+        migrate_lead_schema()
         seed_defaults()
 
     return app
+
+
+def migrate_lead_schema():
+    inspector = inspect(db.engine)
+    if "lead" not in inspector.get_table_names():
+        return
+    columns = {column["name"] for column in inspector.get_columns("lead")}
+    if "course_mode" not in columns:
+        db.session.execute(text("ALTER TABLE lead ADD COLUMN course_mode VARCHAR(20)"))
+    if "partial_amount" not in columns:
+        db.session.execute(text("ALTER TABLE lead ADD COLUMN partial_amount INTEGER"))
+    db.session.commit()
 
 
 def seed_defaults():
@@ -686,6 +759,55 @@ def list_referrals(user_id):
         "pendingPayment": pending,
         "recentReferrals": [record.dict() for record in records],
     }
+
+
+def parse_partial_amount(value):
+    if value in (None, ""):
+        return None
+    try:
+        amount = int(value)
+    except (TypeError, ValueError):
+        return "invalid"
+    if amount <= 0:
+        return "invalid"
+    return amount
+
+
+def validate_lead_payload(data, *, require_contact=False):
+    full_name = (data.get("fullName") or "").strip()
+    email = (data.get("email") or "").strip().lower() or None
+    phone = (data.get("phone") or "").strip() or None
+    source = (data.get("source") or "manual").strip() or "manual"
+    course_mode = (data.get("courseMode") or "").strip().lower() or None
+    status = (data.get("status") or "new").strip()
+    notes = (data.get("notes") or "").strip() or None
+    partial_amount = parse_partial_amount(data.get("partialAmount"))
+
+    if require_contact and not full_name and not email and not phone:
+        return None, error("At least one of name, email, or phone is required")
+    if source not in LEAD_SOURCES:
+        return None, error("Invalid lead source")
+    if status not in LEAD_STATUSES:
+        return None, error(f"Status must be one of: {', '.join(sorted(LEAD_STATUSES))}")
+    if course_mode and course_mode not in {"online", "offline"}:
+        return None, error("Course mode must be online or offline")
+    if partial_amount == "invalid":
+        return None, error("Partial amount must be a positive number")
+    if status == "converted_partial" and partial_amount is None:
+        return None, error("Partial amount is required when status is converted partial")
+    if status != "converted_partial":
+        partial_amount = None
+
+    return {
+        "full_name": full_name,
+        "email": email,
+        "phone": phone,
+        "source": source,
+        "course_mode": course_mode,
+        "status": status,
+        "notes": notes,
+        "partial_amount": partial_amount,
+    }, None
 
 
 def register_routes(app):
@@ -930,6 +1052,15 @@ def register_routes(app):
                 "totalEarningsGenerated": sum(tx.amount for tx in WalletTransaction.query.filter_by(type="earning").all()),
                 "materialsUploaded": Material.query.count(),
                 "announcements": Announcement.query.count(),
+                "totalLeads": Lead.query.filter_by(is_active=True).count(),
+                "newLeads": Lead.query.filter_by(is_active=True, status="new").count(),
+                "interestedLeads": Lead.query.filter_by(is_active=True, status="interested").count(),
+                "onHoldLeads": Lead.query.filter_by(is_active=True, status="on_hold").count(),
+                "lostLeads": Lead.query.filter(
+                    Lead.is_active.is_(True),
+                    Lead.status.in_(["lost", "not_interested"]),
+                ).count(),
+                "partialPaymentLeads": Lead.query.filter_by(is_active=True, status="converted_partial").count(),
             }
         )
 
@@ -1129,6 +1260,79 @@ def register_routes(app):
     def affiliates_list():
         affiliates = User.query.filter_by(role="affiliate", is_active=True).order_by(User.created_at.desc()).all()
         return jsonify({"affiliates": [affiliate.public_dict() for affiliate in affiliates]})
+
+    @app.get("/api/admin/leads")
+    @require_auth("admin")
+    def admin_leads():
+        status = request.args.get("status")
+        query = Lead.query.filter_by(is_active=True)
+        if status and status != "all":
+            if status not in LEAD_STATUSES:
+                return error("Invalid status filter")
+            query = query.filter_by(status=status)
+        leads = query.order_by(Lead.updated_at.desc()).all()
+        return jsonify({"leads": [lead.dict() for lead in leads]})
+
+    @app.post("/api/admin/leads")
+    @require_auth("admin")
+    def create_lead():
+        data = request.get_json(silent=True) or {}
+        payload, validation_error = validate_lead_payload(data, require_contact=True)
+        if validation_error:
+            return validation_error
+        lead = Lead(created_by_id=request.user.id, **payload)
+        db.session.add(lead)
+        db.session.flush()
+        audit("lead_created", request.user, {"leadId": lead.id, "status": lead.status})
+        db.session.commit()
+        return jsonify({"lead": lead.dict()}), 201
+
+    @app.patch("/api/admin/leads/<int:lead_id>")
+    @require_auth("admin")
+    def update_lead(lead_id):
+        data = request.get_json(silent=True) or {}
+        lead = db.session.get(Lead, lead_id)
+        if not lead or not lead.is_active:
+            return error("Lead not found", 404)
+
+        merged = {
+            "fullName": data.get("fullName", lead.full_name or ""),
+            "email": data.get("email", lead.email or ""),
+            "phone": data.get("phone", lead.phone or ""),
+            "source": data.get("source", lead.source),
+            "courseMode": data.get("courseMode", lead.course_mode or ""),
+            "status": data.get("status", lead.status),
+            "notes": data.get("notes", lead.notes or ""),
+            "partialAmount": data.get("partialAmount", lead.partial_amount if lead.partial_amount is not None else ""),
+        }
+        payload, validation_error = validate_lead_payload(merged, require_contact=True)
+        if validation_error:
+            return validation_error
+
+        lead.full_name = payload["full_name"]
+        lead.email = payload["email"]
+        lead.phone = payload["phone"]
+        lead.source = payload["source"]
+        lead.course_mode = payload["course_mode"]
+        lead.status = payload["status"]
+        lead.notes = payload["notes"]
+        lead.partial_amount = payload["partial_amount"]
+        lead.updated_at = now_utc()
+        audit("lead_updated", request.user, {"leadId": lead.id, "status": lead.status})
+        db.session.commit()
+        return jsonify({"lead": lead.dict()})
+
+    @app.delete("/api/admin/leads/<int:lead_id>")
+    @require_auth("admin")
+    def remove_lead(lead_id):
+        lead = db.session.get(Lead, lead_id)
+        if not lead or not lead.is_active:
+            return error("Lead not found", 404)
+        lead.is_active = False
+        lead.updated_at = now_utc()
+        audit("lead_removed", request.user, {"leadId": lead.id})
+        db.session.commit()
+        return jsonify({"lead": lead.dict()})
 
     @app.get("/api/admin/support")
     @require_auth("admin")

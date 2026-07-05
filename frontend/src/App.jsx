@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import brandLogo from "./assets/neighshop-logo.png";
 import paymentLockGuide from "./assets/payment-lock-guide.png";
 import paymentQr from "./assets/payment-qr.png";
@@ -35,7 +36,50 @@ function formatMoney(value) {
   return `Rs ${Number(value || 0).toLocaleString("en-IN")}`;
 }
 
+const LEAD_STATUSES = [
+  { value: "new", label: "New" },
+  { value: "interested", label: "Interested" },
+  { value: "not_interested", label: "Not Interested" },
+  { value: "on_hold", label: "On Hold" },
+  { value: "lost", label: "Lost" },
+  { value: "contacted", label: "Contacted" },
+  { value: "follow_up", label: "Follow Up" },
+  { value: "converted", label: "Converted" },
+  { value: "converted_partial", label: "Converted (Partial Payment)" },
+];
+
+const LEAD_SOURCES = [
+  { value: "manual", label: "Manual" },
+  { value: "meta_ad", label: "Meta Ad" },
+  { value: "website", label: "Website" },
+  { value: "referral", label: "Referral" },
+  { value: "call", label: "Phone Call" },
+  { value: "whatsapp", label: "WhatsApp" },
+  { value: "social", label: "Social Media" },
+  { value: "other", label: "Other" },
+];
+
+const emptyLeadForm = {
+  fullName: "",
+  email: "",
+  phone: "",
+  source: "manual",
+  courseMode: "",
+  status: "new",
+  notes: "",
+  partialAmount: "",
+};
+
+function leadDisplayName(lead) {
+  return lead?.fullName || lead?.email || lead?.phone || `Lead #${lead?.id || ""}`;
+}
+
+function leadSourceLabel(value = "") {
+  return LEAD_SOURCES.find((item) => item.value === value)?.label || humanizeLabel(value || "manual");
+}
+
 function App() {
+  const [leadAddSignal, setLeadAddSignal] = useState(0);
   const [{ token, user }, setAuth] = useState(initialAuth);
   const [settings, setSettings] = useState({});
   const [notice, setNotice] = useState("");
@@ -96,13 +140,19 @@ function App() {
             </svg>
           </a>
           {user && <span>{user.role}</span>}
+          {user?.role === "admin" && (
+            <button type="button" className="topbar-add-lead" onClick={() => setLeadAddSignal((value) => value + 1)}>
+              <span className="topbar-add-lead-icon"><FieldIcon name="users" /></span>
+              <span>Add Lead</span>
+            </button>
+          )}
           {user && <button onClick={logout}>Logout</button>}
         </nav>
       </header>
 
       {!user && loginScreen}
       {user?.role === "student" && <StudentPortal {...shellProps} />}
-      {user?.role === "admin" && <AdminPortal {...shellProps} />}
+      {user?.role === "admin" && <AdminPortal {...shellProps} leadAddSignal={leadAddSignal} onRequestAddLead={() => setLeadAddSignal((value) => value + 1)} />}
       {user?.role === "affiliate" && <AffiliatePortal {...shellProps} />}
     </div>
   );
@@ -342,6 +392,7 @@ function iconForLabel(label = "") {
   if (normalized.includes("announcement")) return "bell";
   if (normalized.includes("earning") || normalized.includes("graph")) return "graph";
   if (normalized.includes("support")) return "message";
+  if (normalized.includes("lead")) return "users";
   if (normalized.includes("course") || normalized.includes("countdown")) return "clock";
   if (normalized.includes("approved") || normalized.includes("verified")) return "check";
   if (normalized.includes("rejected")) return "x";
@@ -1079,7 +1130,7 @@ function AffiliatePortal({ user, token, setNotice }) {
   );
 }
 
-function AdminPortal({ token, settings, setNotice }) {
+function AdminPortal({ token, settings, setNotice, leadAddSignal = 0, onRequestAddLead }) {
   const [tab, setTab] = useState("dashboard");
   const [stats, setStats] = useState({});
   const [students, setStudents] = useState([]);
@@ -1087,6 +1138,17 @@ function AdminPortal({ token, settings, setNotice }) {
   const [affiliates, setAffiliates] = useState([]);
   const [referralEarners, setReferralEarners] = useState([]);
   const [supportRequests, setSupportRequests] = useState([]);
+  const [leads, setLeads] = useState([]);
+  const [leadModal, setLeadModal] = useState(null);
+
+  const openLeadCreate = () => {
+    setTab("leads");
+    setLeadModal({ type: "create" });
+  };
+
+  useEffect(() => {
+    if (leadAddSignal > 0) openLeadCreate();
+  }, [leadAddSignal]);
 
   const loadAdmin = () => {
     Promise.all([
@@ -1096,14 +1158,16 @@ function AdminPortal({ token, settings, setNotice }) {
       api("/api/admin/affiliates", {}, token),
       api("/api/admin/referral-report", {}, token),
       api("/api/admin/support", {}, token),
+      api("/api/admin/leads", {}, token),
     ])
-      .then(([statsData, studentData, paymentData, affiliateData, referralReportData, supportData]) => {
+      .then(([statsData, studentData, paymentData, affiliateData, referralReportData, supportData, leadData]) => {
         setStats(statsData);
         setStudents(studentData.students || []);
         setPayments(paymentData.payments || []);
         setAffiliates(affiliateData.affiliates || []);
         setReferralEarners(referralReportData.earners || []);
         setSupportRequests(supportData.requests || []);
+        setLeads(leadData.leads || []);
       })
       .catch((error) => setNotice(error.message));
   };
@@ -1123,18 +1187,44 @@ function AdminPortal({ token, settings, setNotice }) {
 
   return (
     <main className="portal admin-portal">
-      <Sidebar title="Admin Panel" tabs={["dashboard", "students", "payments", "partners", "support", "content", "settings"]} active={tab} onChange={setTab} hideBrand variant="collapsible" />
+      <Sidebar title="Admin Panel" tabs={["dashboard", "students", "payments", "partners", "leads", "support", "content", "settings"]} active={tab} onChange={setTab} hideBrand variant="collapsible" />
       <section className="workspace">
         <div key={tab} className="tab-panel">
-          {tab === "dashboard" && <AdminStats stats={stats} />}
+          {tab === "dashboard" && (
+            <AdminStats
+              stats={stats}
+              leads={leads}
+              onAddLead={() => onRequestAddLead?.()}
+              onViewLeads={() => setTab("leads")}
+            />
+          )}
           {tab === "students" && <StudentManager students={students} payments={payments} token={token} reload={loadAdmin} setNotice={setNotice} />}
           {tab === "payments" && <PaymentsTable payments={payments} students={students} token={token} onReview={reviewPayment} reload={loadAdmin} setNotice={setNotice} />}
           {tab === "partners" && <PartnerManager token={token} affiliates={affiliates} referralEarners={referralEarners} reload={loadAdmin} setNotice={setNotice} />}
+          {tab === "leads" && (
+            <LeadManager
+              leads={leads}
+              token={token}
+              reload={loadAdmin}
+              setNotice={setNotice}
+              onOpenCreate={openLeadCreate}
+              onOpenEdit={(lead) => setLeadModal({ type: "edit", lead })}
+              onOpenView={(lead) => setLeadModal({ type: "view", lead })}
+            />
+          )}
           {tab === "support" && <SupportInbox requests={supportRequests} token={token} reload={loadAdmin} setNotice={setNotice} />}
           {tab === "content" && <ContentManager token={token} setNotice={setNotice} />}
           {tab === "settings" && <SettingsManager token={token} settings={settings} setNotice={setNotice} />}
         </div>
       </section>
+      <LeadModals
+        modal={leadModal}
+        onClose={() => setLeadModal(null)}
+        onEdit={(lead) => setLeadModal({ type: "edit", lead })}
+        token={token}
+        reload={loadAdmin}
+        setNotice={setNotice}
+      />
     </main>
   );
 }
@@ -1450,11 +1540,14 @@ function SupportPanel({ token, setNotice, title = "Support" }) {
   );
 }
 
-function AdminStats({ stats }) {
+function AdminStats({ stats, leads = [], onAddLead, onViewLeads }) {
   const totalStudents = Number(stats.totalStudents || 0);
   const pending = Number(stats.pendingVerification || 0);
   const approved = Number(stats.approvedStudents || 0);
   const rejected = Number(stats.rejectedPayments || 0);
+  const totalLeads = Number(stats.totalLeads || leads.length || 0);
+  const interestedLeads = Number(stats.interestedLeads || 0);
+  const partialLeads = Number(stats.partialPaymentLeads || 0);
   const cards = [
     ["Total Students", totalStudents, "+ active enrollments"],
     ["Pending Verification", pending, "needs review"],
@@ -1465,8 +1558,8 @@ function AdminStats({ stats }) {
     { label: "Registrations", value: Number(stats.todaysRegistrations || 0) },
     { label: "Payments", value: Number(stats.todaysPayments || 0) },
     { label: "Partners", value: Number(stats.referralPartners || 0) },
+    { label: "Leads", value: totalLeads },
     { label: "Materials", value: Number(stats.materialsUploaded || 0) },
-    { label: "Announcements", value: Number(stats.announcements || 0) },
   ];
   const paymentMix = [
     { label: "Approved", value: approved, tone: "success" },
@@ -1496,6 +1589,19 @@ function AdminStats({ stats }) {
           <div className="insight-row">
             <span>Referral partners</span>
             <strong>{stats.referralPartners || 0}</strong>
+          </div>
+        </article>
+        <article className="wide-card dashboard-insight-card lead-dashboard-card">
+          <p className="eyebrow"><FieldIcon name="users" /> Sales Leads</p>
+          <h3>{totalLeads}</h3>
+          <p>{interestedLeads} interested · {partialLeads} partial payment</p>
+          <div className="dashboard-quick-actions">
+            <button type="button" className="btn-primary compact-button" onClick={onAddLead}>
+              <FieldIcon name="users" /> + Quick Add Lead
+            </button>
+            <button type="button" className="btn-secondary compact-button" onClick={onViewLeads}>
+              View Leads
+            </button>
           </div>
         </article>
       </div>
@@ -1888,7 +1994,6 @@ function PaymentsTable({ payments, students, token, onReview, reload, setNotice 
 }
 
 function PartnerManager({ token, affiliates, referralEarners = [], reload, setNotice }) {
-  const [form, setForm] = useState({ fullName: "", username: "", password: "", phone: "", email: "" });
   const [query, setQuery] = useState("");
   const [showCreate, setShowCreate] = useState(false);
   const [editing, setEditing] = useState(null);
@@ -2143,6 +2248,343 @@ function PartnerManager({ token, affiliates, referralEarners = [], reload, setNo
   );
 }
 
+function LeadFormFields({ value, onChange }) {
+  const showPartialAmount = value.status === "converted_partial";
+
+  return (
+    <>
+      <div className="form-two">
+        <label>Name (optional)<input value={value.fullName || ""} onChange={(event) => onChange({ ...value, fullName: event.target.value })} /></label>
+        <label>Phone<input value={value.phone || ""} onChange={(event) => onChange({ ...value, phone: event.target.value })} /></label>
+        <label>Email (optional)<input type="email" value={value.email || ""} onChange={(event) => onChange({ ...value, email: event.target.value })} /></label>
+        <label>Source
+          <select value={value.source || "manual"} onChange={(event) => onChange({ ...value, source: event.target.value })}>
+            {LEAD_SOURCES.map(({ value: sourceValue, label }) => (
+              <option key={sourceValue} value={sourceValue}>{label}</option>
+            ))}
+          </select>
+        </label>
+        <label>Interested in (optional)
+          <select value={value.courseMode || ""} onChange={(event) => onChange({ ...value, courseMode: event.target.value })}>
+            <option value="">Not specified</option>
+            <option value="online">Online</option>
+            <option value="offline">Offline</option>
+          </select>
+        </label>
+        <label>Status
+          <select value={value.status || "new"} onChange={(event) => onChange({ ...value, status: event.target.value })}>
+            {LEAD_STATUSES.map(({ value: statusValue, label }) => (
+              <option key={statusValue} value={statusValue}>{label}</option>
+            ))}
+          </select>
+        </label>
+      </div>
+      {showPartialAmount && (
+        <label>Amount paid now (partial)
+          <input
+            required
+            type="number"
+            min="1"
+            placeholder="Enter amount received so far"
+            value={value.partialAmount ?? ""}
+            onChange={(event) => onChange({ ...value, partialAmount: event.target.value })}
+          />
+        </label>
+      )}
+      <label>Notes
+        <textarea rows={4} placeholder="Call summary, follow-up plan, objections, etc." value={value.notes || ""} onChange={(event) => onChange({ ...value, notes: event.target.value })} />
+      </label>
+    </>
+  );
+}
+
+function LeadDetailModal({ lead, onClose, onEdit }) {
+  return (
+    <AdminModal title="Lead Details" icon="eye" onClose={onClose} size="wide">
+      <div className="lead-detail-shell">
+        <div className="lead-detail-header">
+          <div>
+            <p className="eyebrow">Lead #{lead.id}</p>
+            <h3>{leadDisplayName(lead)}</h3>
+            <p className="muted lead-detail-subtitle">
+              {lead.phone || "No phone"} · {lead.email || "No email"}
+            </p>
+          </div>
+          <StatusBadge status={lead.status} />
+        </div>
+
+        <div className="lead-detail-grid">
+          <div className="lead-detail-item">
+            <span>Name</span>
+            <strong>{lead.fullName || "Not provided"}</strong>
+          </div>
+          <div className="lead-detail-item">
+            <span>Phone</span>
+            <strong>{lead.phone || "Not provided"}</strong>
+          </div>
+          <div className="lead-detail-item">
+            <span>Email</span>
+            <strong>{lead.email || "Not provided"}</strong>
+          </div>
+          <div className="lead-detail-item">
+            <span>Source</span>
+            <strong>{leadSourceLabel(lead.source)}</strong>
+          </div>
+          <div className="lead-detail-item">
+            <span>Interested In</span>
+            <strong>{lead.courseMode ? humanizeLabel(lead.courseMode) : "Not specified"}</strong>
+          </div>
+          <div className="lead-detail-item">
+            <span>Status</span>
+            <StatusBadge status={lead.status} />
+          </div>
+          {lead.status === "converted_partial" && (
+            <div className="lead-detail-item lead-detail-highlight">
+              <span>Partial Amount Paid</span>
+              <strong>{formatMoney(lead.partialAmount)}</strong>
+            </div>
+          )}
+          <div className="lead-detail-item">
+            <span>Added By</span>
+            <strong>{lead.createdBy || "Admin"}</strong>
+          </div>
+          <div className="lead-detail-item">
+            <span>Created</span>
+            <strong>{formatDate(lead.createdAt)}</strong>
+          </div>
+          <div className="lead-detail-item">
+            <span>Last Updated</span>
+            <strong>{formatDate(lead.updatedAt || lead.createdAt)}</strong>
+          </div>
+          <div className="lead-detail-item lead-detail-notes">
+            <span>Notes</span>
+            <p>{lead.notes || "No notes added yet."}</p>
+          </div>
+        </div>
+
+        <div className="lead-modal-actions">
+          <button type="button" className="btn-primary" onClick={() => onEdit(lead)}>
+            <FieldIcon name="edit" /> Edit Lead
+          </button>
+          <button type="button" className="btn-secondary" onClick={onClose}>Close</button>
+        </div>
+      </div>
+    </AdminModal>
+  );
+}
+
+function leadSubmitPayload(payload) {
+  return {
+    ...payload,
+    partialAmount: payload.status === "converted_partial" ? Number(payload.partialAmount || 0) : null,
+    courseMode: payload.courseMode || null,
+  };
+}
+
+function LeadModals({ modal, onClose, onEdit, token, reload, setNotice }) {
+  const [form, setForm] = useState(emptyLeadForm);
+  const isEdit = modal?.type === "edit";
+  const isCreate = modal?.type === "create";
+
+  useEffect(() => {
+    if (isCreate) setForm(emptyLeadForm);
+    if (isEdit && modal?.lead) {
+      setForm({
+        ...modal.lead,
+        partialAmount: modal.lead.partialAmount ?? "",
+      });
+    }
+  }, [modal, isCreate, isEdit]);
+
+  if (!modal) return null;
+
+  if (modal.type === "view") {
+    return (
+      <LeadDetailModal
+        lead={modal.lead}
+        onClose={onClose}
+        onEdit={onEdit}
+      />
+    );
+  }
+
+  if (!isCreate && !isEdit) return null;
+
+  const submit = async (event) => {
+    event.preventDefault();
+    if (!form.fullName?.trim() && !form.email?.trim() && !form.phone?.trim()) {
+      setNotice("Add at least one of name, email, or phone.");
+      return;
+    }
+    if (form.status === "converted_partial" && !Number(form.partialAmount)) {
+      setNotice("Enter the partial amount paid for converted partial leads.");
+      return;
+    }
+    try {
+      if (isEdit) {
+        await api(`/api/admin/leads/${modal.lead.id}`, {
+          method: "PATCH",
+          body: JSON.stringify(leadSubmitPayload(form)),
+        }, token);
+        setNotice("Lead updated.");
+      } else {
+        await api("/api/admin/leads", {
+          method: "POST",
+          body: JSON.stringify(leadSubmitPayload(form)),
+        }, token);
+        setNotice("Lead added.");
+      }
+      onClose();
+      reload();
+    } catch (error) {
+      setNotice(error.message);
+    }
+  };
+
+  return (
+    <AdminModal
+      title={isEdit ? "Edit Lead" : "Add Sales Lead"}
+      icon={isEdit ? "edit" : "users"}
+      onClose={onClose}
+      size="wide"
+    >
+      <form className="modal-form lead-modal-form" onSubmit={submit}>
+        <p className="muted">
+          {isEdit
+            ? "Update lead details, status, and notes."
+            : "Name and email are optional — add at least one contact detail (name, email, or phone)."}
+        </p>
+        <LeadFormFields value={form} onChange={setForm} />
+        <div className="lead-modal-actions">
+          <button type="submit" className="btn-primary">
+            <FieldIcon name="check" /> {isEdit ? "Save Changes" : "Save Lead"}
+          </button>
+          <button type="button" className="btn-secondary" onClick={onClose}>Cancel</button>
+        </div>
+      </form>
+    </AdminModal>
+  );
+}
+
+function LeadManager({ leads, token, reload, setNotice, onOpenCreate, onOpenEdit, onOpenView }) {
+  const [query, setQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return leads.filter((lead) => {
+      if (statusFilter !== "all" && lead.status !== statusFilter) return false;
+      const haystack = [lead.fullName, lead.email, lead.phone, lead.source, lead.courseMode, lead.notes, lead.status]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      return !q || haystack.includes(q);
+    });
+  }, [leads, query, statusFilter]);
+
+  const statusCounts = useMemo(() => {
+    const counts = { all: leads.length };
+    LEAD_STATUSES.forEach(({ value }) => {
+      counts[value] = leads.filter((lead) => lead.status === value).length;
+    });
+    return counts;
+  }, [leads]);
+
+  const remove = async (lead) => {
+    if (!window.confirm(`Remove lead ${leadDisplayName(lead)}?`)) return;
+    try {
+      await api(`/api/admin/leads/${lead.id}`, { method: "DELETE" }, token);
+      setNotice("Lead removed.");
+      reload();
+    } catch (error) {
+      setNotice(error.message);
+    }
+  };
+
+  const quickStatus = async (lead, nextStatus) => {
+    try {
+      await api(`/api/admin/leads/${lead.id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ status: nextStatus }),
+      }, token);
+      setNotice(`Lead marked ${nextStatus.replace(/_/g, " ")}.`);
+      reload();
+    } catch (error) {
+      setNotice(error.message);
+    }
+  };
+
+  return (
+    <div className="stack">
+      <div className="summary-strip">
+        <StatCard label="Total Leads" value={statusCounts.all} />
+        <StatCard label="New" value={statusCounts.new || 0} />
+        <StatCard label="Interested" value={statusCounts.interested || 0} />
+        <StatCard label="On Hold" value={statusCounts.on_hold || 0} />
+        <StatCard label="Partial Payment" value={statusCounts.converted_partial || 0} />
+        <StatCard label="Lost / Not Interested" value={(statusCounts.lost || 0) + (statusCounts.not_interested || 0)} />
+      </div>
+
+      <div className="admin-toolbar">
+        <label className="search-field">
+          <FieldIcon name="search" />
+          <input placeholder="Search leads by name, email, phone, notes..." value={query} onChange={(event) => setQuery(event.target.value)} />
+        </label>
+        <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)} aria-label="Filter leads by status">
+          <option value="all">All statuses</option>
+          {LEAD_STATUSES.map(({ value, label }) => (
+            <option key={value} value={value}>{label}</option>
+          ))}
+        </select>
+        <div className="toolbar-actions">
+          <button type="button" className="btn-primary compact-button" onClick={onOpenCreate}>
+            <FieldIcon name="users" /> + Add Lead
+          </button>
+          <span className="toolbar-count">{filtered.length} leads</span>
+        </div>
+      </div>
+
+      {filtered.length ? (
+        <div className="table-wrap professional-table">
+          <table>
+            <thead>
+              <tr><th>Lead</th><th>Contact</th><th>Source</th><th>Course</th><th>Status</th><th>Notes</th><th>Updated</th><th>Actions</th></tr>
+            </thead>
+            <tbody>
+              {filtered.map((lead) => (
+                <tr key={lead.id}>
+                  <td><strong>{leadDisplayName(lead)}</strong><br /><small>Added {formatDate(lead.createdAt)}</small></td>
+                  <td>{lead.email || "-"}<br /><small>{lead.phone || "No phone"}</small></td>
+                  <td>{leadSourceLabel(lead.source)}</td>
+                  <td>{lead.courseMode ? humanizeLabel(lead.courseMode) : "-"}</td>
+                  <td>
+                    <StatusBadge status={lead.status} />
+                    {lead.status === "converted_partial" && lead.partialAmount ? (
+                      <><br /><small>{formatMoney(lead.partialAmount)} paid</small></>
+                    ) : null}
+                  </td>
+                  <td className="message-cell">{lead.notes || <span className="muted">No notes</span>}</td>
+                  <td>{formatDate(lead.updatedAt || lead.createdAt)}</td>
+                  <td className="table-actions">
+                    <ActionButton icon="eye" onClick={() => onOpenView(lead)}>View</ActionButton>
+                    <ActionButton icon="edit" tone="soft" onClick={() => onOpenEdit(lead)}>Edit</ActionButton>
+                    <ActionButton icon="check" tone="success" onClick={() => quickStatus(lead, "interested")}>Interested</ActionButton>
+                    <ActionButton icon="clock" onClick={() => quickStatus(lead, "on_hold")}>Hold</ActionButton>
+                    <ActionButton icon="x" tone="danger" onClick={() => quickStatus(lead, "lost")}>Lost</ActionButton>
+                    <ActionButton icon="trash" tone="danger" onClick={() => remove(lead)}>Remove</ActionButton>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <EmptyState title="No leads yet" text="Add a lead manually or adjust your search and status filters." />
+      )}
+    </div>
+  );
+}
+
 function SupportInbox({ requests, token, reload, setNotice }) {
   const [status, setStatus] = useState("all");
   const filtered = requests.filter((request) => status === "all" || request.status === status);
@@ -2335,7 +2777,7 @@ function AdminModal({ title, icon = "eye", onClose, children, size = "" }) {
     if (event.target === event.currentTarget) onClose();
   };
 
-  return (
+  return createPortal(
     <div className="admin-modal-backdrop" role="dialog" aria-modal="true" aria-label={title} onMouseDown={closeOnBackdrop}>
       <div className={`admin-modal ${size ? `admin-modal-${size}` : ""}`}>
         <div className="admin-modal-header">
@@ -2348,7 +2790,8 @@ function AdminModal({ title, icon = "eye", onClose, children, size = "" }) {
           {children}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
