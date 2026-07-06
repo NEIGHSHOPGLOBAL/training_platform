@@ -3321,6 +3321,206 @@ tbody tr:hover {
   overflow-wrap: anywhere;
 }
 
+.lead-card-list {
+  display: none;
+}
+
+.lead-toolbar {
+  grid-template-columns: minmax(0, 1fr) minmax(180px, 220px);
+}
+
+.lead-toolbar-actions {
+  grid-column: 1 / -1;
+  justify-content: stretch;
+}
+
+.lead-toolbar-actions .compact-button {
+  flex: 1 1 auto;
+  justify-content: center;
+}
+
+.lead-filter-select {
+  width: 100%;
+  min-height: 48px;
+}
+
+.lead-summary-strip {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.lead-card {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid rgba(168, 240, 96, 0.16);
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(168, 240, 96, 0.08), transparent 12rem),
+    rgba(255, 255, 255, 0.03);
+}
+
+.lead-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.lead-card-top h3 {
+  margin: 4px 0 0;
+  color: var(--white);
+  font-size: 1.08rem;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.lead-card-contact,
+.lead-card-meta {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.84rem;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.lead-card-notes {
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.22);
+  color: #ececec;
+  font-size: 0.88rem;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.lead-card-partial {
+  margin: 0;
+  color: var(--green);
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.lead-status-field {
+  margin: 0;
+  gap: 10px;
+}
+
+.lead-status-select {
+  min-height: 48px;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.lead-quick-status-bar {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.lead-quick-chip {
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--white);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.lead-quick-chip.success {
+  border-color: rgba(34, 224, 58, 0.28);
+  color: #c8ffc0;
+  background: rgba(34, 224, 58, 0.08);
+}
+
+.lead-quick-chip.warning {
+  border-color: rgba(255, 209, 102, 0.28);
+  color: #ffe3a1;
+  background: rgba(255, 209, 102, 0.08);
+}
+
+.lead-quick-chip.danger {
+  border-color: rgba(255, 107, 107, 0.24);
+  color: #ffb3b3;
+  background: rgba(255, 107, 107, 0.08);
+}
+
+.lead-card-actions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+.lead-card-actions .action-button {
+  width: 100%;
+  min-height: 44px;
+  justify-content: center;
+}
+
+@media (max-width: 900px) {
+  .lead-table-desktop {
+    display: none;
+  }
+
+  .lead-card-list {
+    display: grid;
+    gap: 14px;
+  }
+
+  .lead-summary-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .lead-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-portal .sidebar-collapsible {
+    position: sticky;
+    top: 69px;
+    z-index: 12;
+    display: flex;
+    gap: 8px;
+    width: auto;
+    padding: 12px 14px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .admin-portal .sidebar-collapsible::-webkit-scrollbar {
+    display: none;
+  }
+
+  .admin-portal .sidebar-collapsible button {
+    flex: 0 0 auto;
+    width: auto;
+    min-height: 44px;
+    margin: 0;
+    padding: 10px 14px;
+    white-space: nowrap;
+  }
+
+  .admin-portal .sidebar-collapsible button > span:last-child {
+    opacity: 1;
+    transform: none;
+    min-width: 0;
+  }
+
+  .admin-portal {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-portal .workspace {
+    padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
 .settings-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
@@ -3730,6 +3930,25 @@ tbody tr:hover {
   .lead-detail-header {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .lead-summary-strip {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .lead-quick-status-bar {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .lead-modal-actions,
+  .lead-modal-actions .btn-primary,
+  .lead-modal-actions .btn-secondary {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .admin-modal-wide {
+    width: 100%;
   }
 
   .topbar-add-lead span:last-child {

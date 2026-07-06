@@ -2502,6 +2502,11 @@ function LeadManager({ leads, token, reload, setNotice, onOpenCreate, onOpenEdit
   };
 
   const quickStatus = async (lead, nextStatus) => {
+    if (nextStatus === "converted_partial" && !Number(lead.partialAmount)) {
+      setNotice("Enter the partial amount in edit before marking converted partial.");
+      onOpenEdit({ ...lead, status: nextStatus, partialAmount: lead.partialAmount ?? "" });
+      return;
+    }
     try {
       await api(`/api/admin/leads/${lead.id}`, {
         method: "PATCH",
@@ -2514,9 +2519,14 @@ function LeadManager({ leads, token, reload, setNotice, onOpenCreate, onOpenEdit
     }
   };
 
+  const updateLeadStatus = async (lead, nextStatus) => {
+    if (nextStatus === lead.status) return;
+    await quickStatus(lead, nextStatus);
+  };
+
   return (
-    <div className="stack">
-      <div className="summary-strip">
+    <div className="stack lead-manager">
+      <div className="summary-strip lead-summary-strip">
         <StatCard label="Total Leads" value={statusCounts.all} />
         <StatCard label="New" value={statusCounts.new || 0} />
         <StatCard label="Interested" value={statusCounts.interested || 0} />
@@ -2525,18 +2535,18 @@ function LeadManager({ leads, token, reload, setNotice, onOpenCreate, onOpenEdit
         <StatCard label="Lost / Not Interested" value={(statusCounts.lost || 0) + (statusCounts.not_interested || 0)} />
       </div>
 
-      <div className="admin-toolbar">
+      <div className="admin-toolbar lead-toolbar">
         <label className="search-field">
           <FieldIcon name="search" />
-          <input placeholder="Search leads by name, email, phone, notes..." value={query} onChange={(event) => setQuery(event.target.value)} />
+          <input placeholder="Search leads..." value={query} onChange={(event) => setQuery(event.target.value)} />
         </label>
-        <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)} aria-label="Filter leads by status">
+        <select className="lead-filter-select" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)} aria-label="Filter leads by status">
           <option value="all">All statuses</option>
           {LEAD_STATUSES.map(({ value, label }) => (
             <option key={value} value={value}>{label}</option>
           ))}
         </select>
-        <div className="toolbar-actions">
+        <div className="toolbar-actions lead-toolbar-actions">
           <button type="button" className="btn-primary compact-button" onClick={onOpenCreate}>
             <FieldIcon name="users" /> + Add Lead
           </button>
@@ -2545,39 +2555,91 @@ function LeadManager({ leads, token, reload, setNotice, onOpenCreate, onOpenEdit
       </div>
 
       {filtered.length ? (
-        <div className="table-wrap professional-table">
-          <table>
-            <thead>
-              <tr><th>Lead</th><th>Contact</th><th>Source</th><th>Course</th><th>Status</th><th>Notes</th><th>Updated</th><th>Actions</th></tr>
-            </thead>
-            <tbody>
-              {filtered.map((lead) => (
-                <tr key={lead.id}>
-                  <td><strong>{leadDisplayName(lead)}</strong><br /><small>Added {formatDate(lead.createdAt)}</small></td>
-                  <td>{lead.email || "-"}<br /><small>{lead.phone || "No phone"}</small></td>
-                  <td>{leadSourceLabel(lead.source)}</td>
-                  <td>{lead.courseMode ? humanizeLabel(lead.courseMode) : "-"}</td>
-                  <td>
-                    <StatusBadge status={lead.status} />
-                    {lead.status === "converted_partial" && lead.partialAmount ? (
-                      <><br /><small>{formatMoney(lead.partialAmount)} paid</small></>
-                    ) : null}
-                  </td>
-                  <td className="message-cell">{lead.notes || <span className="muted">No notes</span>}</td>
-                  <td>{formatDate(lead.updatedAt || lead.createdAt)}</td>
-                  <td className="table-actions">
-                    <ActionButton icon="eye" onClick={() => onOpenView(lead)}>View</ActionButton>
-                    <ActionButton icon="edit" tone="soft" onClick={() => onOpenEdit(lead)}>Edit</ActionButton>
-                    <ActionButton icon="check" tone="success" onClick={() => quickStatus(lead, "interested")}>Interested</ActionButton>
-                    <ActionButton icon="clock" onClick={() => quickStatus(lead, "on_hold")}>Hold</ActionButton>
-                    <ActionButton icon="x" tone="danger" onClick={() => quickStatus(lead, "lost")}>Lost</ActionButton>
-                    <ActionButton icon="trash" tone="danger" onClick={() => remove(lead)}>Remove</ActionButton>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <>
+          <div className="table-wrap professional-table lead-table-desktop">
+            <table>
+              <thead>
+                <tr><th>Lead</th><th>Contact</th><th>Source</th><th>Course</th><th>Status</th><th>Notes</th><th>Updated</th><th>Actions</th></tr>
+              </thead>
+              <tbody>
+                {filtered.map((lead) => (
+                  <tr key={lead.id}>
+                    <td><strong>{leadDisplayName(lead)}</strong><br /><small>Added {formatDate(lead.createdAt)}</small></td>
+                    <td>{lead.email || "-"}<br /><small>{lead.phone || "No phone"}</small></td>
+                    <td>{leadSourceLabel(lead.source)}</td>
+                    <td>{lead.courseMode ? humanizeLabel(lead.courseMode) : "-"}</td>
+                    <td>
+                      <StatusBadge status={lead.status} />
+                      {lead.status === "converted_partial" && lead.partialAmount ? (
+                        <><br /><small>{formatMoney(lead.partialAmount)} paid</small></>
+                      ) : null}
+                    </td>
+                    <td className="message-cell">{lead.notes || <span className="muted">No notes</span>}</td>
+                    <td>{formatDate(lead.updatedAt || lead.createdAt)}</td>
+                    <td className="table-actions">
+                      <ActionButton icon="eye" onClick={() => onOpenView(lead)}>View</ActionButton>
+                      <ActionButton icon="edit" tone="soft" onClick={() => onOpenEdit(lead)}>Edit</ActionButton>
+                      <ActionButton icon="check" tone="success" onClick={() => quickStatus(lead, "interested")}>Interested</ActionButton>
+                      <ActionButton icon="clock" onClick={() => quickStatus(lead, "on_hold")}>Hold</ActionButton>
+                      <ActionButton icon="x" tone="danger" onClick={() => quickStatus(lead, "lost")}>Lost</ActionButton>
+                      <ActionButton icon="trash" tone="danger" onClick={() => remove(lead)}>Remove</ActionButton>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="lead-card-list">
+            {filtered.map((lead) => (
+              <article className="lead-card" key={`card-${lead.id}`}>
+                <div className="lead-card-top">
+                  <div>
+                    <p className="eyebrow">{leadSourceLabel(lead.source)}{lead.courseMode ? ` · ${humanizeLabel(lead.courseMode)}` : ""}</p>
+                    <h3>{leadDisplayName(lead)}</h3>
+                    <p className="lead-card-contact">{lead.phone || "No phone"}{lead.email ? ` · ${lead.email}` : ""}</p>
+                  </div>
+                  <StatusBadge status={lead.status} />
+                </div>
+
+                {lead.notes ? <p className="lead-card-notes">{lead.notes}</p> : <p className="lead-card-notes muted">No notes yet.</p>}
+
+                {lead.status === "converted_partial" && lead.partialAmount ? (
+                  <p className="lead-card-partial">{formatMoney(lead.partialAmount)} paid so far</p>
+                ) : null}
+
+                <label className="lead-status-field">
+                  Update status
+                  <select
+                    className="lead-status-select"
+                    value={lead.status}
+                    onChange={(event) => updateLeadStatus(lead, event.target.value)}
+                    aria-label={`Update status for ${leadDisplayName(lead)}`}
+                  >
+                    {LEAD_STATUSES.map(({ value, label }) => (
+                      <option key={value} value={value}>{label}</option>
+                    ))}
+                  </select>
+                </label>
+
+                <div className="lead-quick-status-bar">
+                  <button type="button" className="lead-quick-chip success" onClick={() => quickStatus(lead, "interested")}>Interested</button>
+                  <button type="button" className="lead-quick-chip" onClick={() => quickStatus(lead, "follow_up")}>Follow Up</button>
+                  <button type="button" className="lead-quick-chip warning" onClick={() => quickStatus(lead, "on_hold")}>On Hold</button>
+                  <button type="button" className="lead-quick-chip danger" onClick={() => quickStatus(lead, "lost")}>Lost</button>
+                </div>
+
+                <div className="lead-card-actions">
+                  <ActionButton icon="eye" onClick={() => onOpenView(lead)}>View</ActionButton>
+                  <ActionButton icon="edit" tone="soft" onClick={() => onOpenEdit(lead)}>Edit</ActionButton>
+                  <ActionButton icon="trash" tone="danger" onClick={() => remove(lead)}>Remove</ActionButton>
+                </div>
+
+                <p className="lead-card-meta">Updated {formatDate(lead.updatedAt || lead.createdAt)}</p>
+              </article>
+            ))}
+          </div>
+        </>
       ) : (
         <EmptyState title="No leads yet" text="Add a lead manually or adjust your search and status filters." />
       )}
