@@ -1140,9 +1140,16 @@ function AdminPortal({ token, settings, setNotice, leadAddSignal = 0, onRequestA
   const [supportRequests, setSupportRequests] = useState([]);
   const [leads, setLeads] = useState([]);
   const [leadModal, setLeadModal] = useState(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const adminTabs = ["dashboard", "students", "payments", "partners", "leads", "support", "content", "settings"];
+
+  const changeTab = (nextTab) => {
+    setTab(nextTab);
+    setMobileMenuOpen(false);
+  };
 
   const openLeadCreate = () => {
-    setTab("leads");
+    changeTab("leads");
     setLeadModal({ type: "create" });
   };
 
@@ -1187,15 +1194,15 @@ function AdminPortal({ token, settings, setNotice, leadAddSignal = 0, onRequestA
 
   return (
     <main className="portal admin-portal">
-      <Sidebar title="Admin Panel" tabs={["dashboard", "students", "payments", "partners", "leads", "support", "content", "settings"]} active={tab} onChange={setTab} hideBrand variant="collapsible" />
-      <section className="workspace">
-        <div key={tab} className="tab-panel">
+      <Sidebar title="Admin Panel" tabs={adminTabs} active={tab} onChange={changeTab} hideBrand variant="collapsible admin-desktop-sidebar" />
+      <section className="workspace admin-workspace">
+        <div key={tab} className="tab-panel admin-tab-panel">
           {tab === "dashboard" && (
             <AdminStats
               stats={stats}
               leads={leads}
               onAddLead={() => onRequestAddLead?.()}
-              onViewLeads={() => setTab("leads")}
+              onViewLeads={() => changeTab("leads")}
             />
           )}
           {tab === "students" && <StudentManager students={students} payments={payments} token={token} reload={loadAdmin} setNotice={setNotice} />}
@@ -1225,7 +1232,61 @@ function AdminPortal({ token, settings, setNotice, leadAddSignal = 0, onRequestA
         reload={loadAdmin}
         setNotice={setNotice}
       />
+      <AdminMobileNav
+        tabs={adminTabs}
+        active={tab}
+        onChange={changeTab}
+        menuOpen={mobileMenuOpen}
+        setMenuOpen={setMobileMenuOpen}
+      />
     </main>
+  );
+}
+
+function AdminMobileNav({ tabs, active, onChange, menuOpen, setMenuOpen }) {
+  const bottomTabs = ["dashboard", "students", "payments", "leads"];
+  const menuTabs = tabs.filter((tab) => !bottomTabs.includes(tab));
+  useBodyScrollLock(menuOpen);
+
+  return (
+    <>
+      <nav className="admin-mobile-bottom-nav" aria-label="Admin mobile navigation">
+        {bottomTabs.map((tab) => (
+          <button key={tab} type="button" className={active === tab ? "active" : ""} onClick={() => onChange(tab)}>
+            <FieldIcon name={iconForLabel(tab)} />
+            <span>{tab}</span>
+          </button>
+        ))}
+        <button type="button" className={menuOpen || menuTabs.includes(active) ? "active" : ""} onClick={() => setMenuOpen(!menuOpen)}>
+          <span className="hamburger-lines" aria-hidden="true"><i /><i /><i /></span>
+          <span>More</span>
+        </button>
+      </nav>
+
+      {menuOpen && (
+        <div className="admin-mobile-menu-backdrop" role="presentation" onMouseDown={() => setMenuOpen(false)}>
+          <aside className="admin-mobile-menu" role="dialog" aria-modal="true" aria-label="Admin menu" onMouseDown={(event) => event.stopPropagation()}>
+            <div className="admin-mobile-menu-header">
+              <div>
+                <p className="eyebrow">Admin Menu</p>
+                <h2>All Sections</h2>
+              </div>
+              <button type="button" className="modal-close-button" onClick={() => setMenuOpen(false)} aria-label="Close menu">
+                <FieldIcon name="x" />
+              </button>
+            </div>
+            <div className="admin-mobile-menu-grid">
+              {menuTabs.map((tab) => (
+                <button key={tab} type="button" className={active === tab ? "active" : ""} onClick={() => onChange(tab)}>
+                  <FieldIcon name={iconForLabel(tab)} />
+                  <span>{tab}</span>
+                </button>
+              ))}
+            </div>
+          </aside>
+        </div>
+      )}
+    </>
   );
 }
 
@@ -1766,7 +1827,7 @@ function StudentManager({ students, payments = [], token, reload, setNotice }) {
 
       {filtered.length ? (
         <div className="table-wrap professional-table">
-          <table>
+          <table className="admin-responsive-table">
             <thead>
               <tr><th>Student</th><th>Contact</th><th>Status</th><th>Referral</th><th>Course</th><th>Joined</th><th>Actions</th></tr>
             </thead>
@@ -1777,13 +1838,13 @@ function StudentManager({ students, payments = [], token, reload, setNotice }) {
                     const proof = proofByStudentId.get(student.id);
                     return (
                       <>
-                  <td><strong>{student.fullName}</strong><br /><small>{student.studentId}</small></td>
-                  <td>{student.email || "-"}<br /><small>{student.phone || "No phone"}</small></td>
-                  <td><StatusBadge status={student.paymentStatus} /></td>
-                  <td>{student.referralCode || "-"}<br /><small>{student.hasReferral ? "Referred student" : "Direct"}</small></td>
-                  <td>{student.courseMode || "-"}</td>
-                  <td>{formatDate(student.createdAt)}</td>
-                  <td className="table-actions">
+                  <td data-label="Student"><strong>{student.fullName}</strong><br /><small>{student.studentId}</small></td>
+                  <td data-label="Contact">{student.email || "-"}<br /><small>{student.phone || "No phone"}</small></td>
+                  <td data-label="Status"><StatusBadge status={student.paymentStatus} /></td>
+                  <td data-label="Referral">{student.referralCode || "-"}<br /><small>{student.hasReferral ? "Referred student" : "Direct"}</small></td>
+                  <td data-label="Course">{student.courseMode || "-"}</td>
+                  <td data-label="Joined">{formatDate(student.createdAt)}</td>
+                  <td className="table-actions" data-label="Actions">
                     <ActionButton icon="eye" onClick={() => setSelected(student)}>View</ActionButton>
                     {proof && <AuthFileLink path={proof.screenshotUrl} token={token}><FieldIcon name="file" /> Proof</AuthFileLink>}
                     <ActionButton icon="edit" tone="soft" onClick={() => startEdit(student)}>Edit</ActionButton>
@@ -1914,19 +1975,19 @@ function PaymentsTable({ payments, students, token, onReview, reload, setNotice 
 
       {filtered.length ? (
         <div className="table-wrap professional-table">
-          <table>
+          <table className="admin-responsive-table">
             <thead>
               <tr><th>Student</th><th>Mode</th><th>Amount</th><th>Status</th>{!proofMinimized && <th>Proof</th>}<th>Submitted</th><th>Actions</th></tr>
             </thead>
             <tbody>
               {filtered.map((payment) => (
                 <tr key={payment.id} className={["payment_submitted", "under_review"].includes(payment.status) ? "attention-row" : ""}>
-                  <td><strong>{payment.student?.fullName || "Unknown"}</strong><br /><small>{payment.student?.studentId || "-"}</small></td>
-                  <td>{payment.mode}</td>
-                  <td>{formatMoney(payment.payableAmount)}</td>
-                  <td><StatusBadge status={payment.status} /></td>
+                  <td data-label="Student"><strong>{payment.student?.fullName || "Unknown"}</strong><br /><small>{payment.student?.studentId || "-"}</small></td>
+                  <td data-label="Mode">{payment.mode}</td>
+                  <td data-label="Amount">{formatMoney(payment.payableAmount)}</td>
+                  <td data-label="Status"><StatusBadge status={payment.status} /></td>
                   {!proofMinimized && (
-                    <td>
+                    <td data-label="Proof">
                       {payment.screenshotUrl ? (
                         <AuthFileLink path={payment.screenshotUrl} token={token}><FieldIcon name="file" /> {payment.proofLabel || "View proof"}</AuthFileLink>
                       ) : (
@@ -1934,8 +1995,8 @@ function PaymentsTable({ payments, students, token, onReview, reload, setNotice 
                       )}
                     </td>
                   )}
-                  <td>{formatDate(payment.createdAt)}</td>
-                  <td className="table-actions">
+                  <td data-label="Submitted">{formatDate(payment.createdAt)}</td>
+                  <td className="table-actions" data-label="Actions">
                     {payment.status === "approved" ? (
                       <ActionButton icon="x" tone="danger" onClick={() => onReview(payment.id, "rejected")}>Disapprove</ActionButton>
                     ) : (
@@ -2122,19 +2183,19 @@ function PartnerManager({ token, affiliates, referralEarners = [], reload, setNo
 
       {filtered.length ? (
         <div className="table-wrap professional-table">
-          <table>
+          <table className="admin-responsive-table">
             <thead>
               <tr><th>Partner</th><th>Contact</th><th>Referral Code</th><th>Status</th><th>Created</th><th>Actions</th></tr>
             </thead>
             <tbody>
               {filtered.map((partner) => (
                 <tr key={partner.id}>
-                  <td><strong>{partner.fullName}</strong><br /><small>@{partner.username}</small></td>
-                  <td>{partner.email || "-"}<br /><small>{partner.phone || "No phone"}</small></td>
-                  <td><strong>{partner.referralCode}</strong></td>
-                  <td><StatusBadge status={partner.isActive ? "active" : "inactive"} /></td>
-                  <td>{formatDate(partner.createdAt)}</td>
-                  <td className="table-actions">
+                  <td data-label="Partner"><strong>{partner.fullName}</strong><br /><small>@{partner.username}</small></td>
+                  <td data-label="Contact">{partner.email || "-"}<br /><small>{partner.phone || "No phone"}</small></td>
+                  <td data-label="Referral Code"><strong>{partner.referralCode}</strong></td>
+                  <td data-label="Status"><StatusBadge status={partner.isActive ? "active" : "inactive"} /></td>
+                  <td data-label="Created">{formatDate(partner.createdAt)}</td>
+                  <td className="table-actions" data-label="Actions">
                     <ActionButton icon="eye" onClick={() => setEditing({ ...partner, password: "" })}>View</ActionButton>
                     <ActionButton icon="edit" tone="soft" onClick={() => setEditing({ ...partner, password: "" })}>Edit</ActionButton>
                     <ActionButton icon="trash" tone="danger" onClick={() => remove(partner)}>Remove</ActionButton>
@@ -2155,20 +2216,20 @@ function PartnerManager({ token, affiliates, referralEarners = [], reload, setNo
 
       {earners.length ? (
         <div className="table-wrap professional-table">
-          <table>
+          <table className="admin-responsive-table">
             <thead>
               <tr><th>Referrer</th><th>Role</th><th>Referral Code</th><th>Referrals</th><th>Wallet</th><th>Paid</th><th>Actions</th></tr>
             </thead>
             <tbody>
               {earners.map((earner) => (
                 <tr key={earner.user.id}>
-                  <td><strong>{earner.user.fullName}</strong><br /><small>{earner.user.studentId || (earner.user.username ? `@${earner.user.username}` : earner.user.email || "-")}</small></td>
-                  <td>{earner.user.role}</td>
-                  <td><strong>{earner.user.referralCode || "-"}</strong></td>
-                  <td>{earner.referrals?.totalReferrals || 0}<br /><small>{earner.referrals?.approvedReferrals || 0} approved</small></td>
-                  <td><strong>{formatMoney(earner.wallet?.availableBalance)}</strong><br /><small>{formatMoney(earner.wallet?.lifetimeEarnings)} earned</small></td>
-                  <td>{formatMoney(earner.wallet?.paidAmount)}</td>
-                  <td className="table-actions">
+                  <td data-label="Referrer"><strong>{earner.user.fullName}</strong><br /><small>{earner.user.studentId || (earner.user.username ? `@${earner.user.username}` : earner.user.email || "-")}</small></td>
+                  <td data-label="Role">{earner.user.role}</td>
+                  <td data-label="Referral Code"><strong>{earner.user.referralCode || "-"}</strong></td>
+                  <td data-label="Referrals">{earner.referrals?.totalReferrals || 0}<br /><small>{earner.referrals?.approvedReferrals || 0} approved</small></td>
+                  <td data-label="Wallet"><strong>{formatMoney(earner.wallet?.availableBalance)}</strong><br /><small>{formatMoney(earner.wallet?.lifetimeEarnings)} earned</small></td>
+                  <td data-label="Paid">{formatMoney(earner.wallet?.paidAmount)}</td>
+                  <td className="table-actions" data-label="Actions">
                     <ActionButton icon="wallet" tone="success" onClick={() => openPayout(earner)} disabled={Number(earner.wallet?.availableBalance || 0) <= 0}>Payout</ActionButton>
                   </td>
                 </tr>
@@ -2683,26 +2744,26 @@ function SupportInbox({ requests, token, reload, setNotice }) {
       </div>
       {filtered.length ? (
         <div className="table-wrap professional-table">
-          <table>
+          <table className="admin-responsive-table">
             <thead>
               <tr><th>User</th><th>Role</th><th>Message</th><th>Attachment</th><th>Status</th><th>Created</th><th>Actions</th></tr>
             </thead>
             <tbody>
               {filtered.map((request) => (
                 <tr key={request.id}>
-                  <td><strong>{request.user.fullName}</strong><br /><small>{request.user.studentId || request.user.username || request.user.email}</small></td>
-                  <td>{request.user.role}</td>
-                  <td className="message-cell">{request.message}</td>
-                  <td>
+                  <td data-label="User"><strong>{request.user.fullName}</strong><br /><small>{request.user.studentId || request.user.username || request.user.email}</small></td>
+                  <td data-label="Role">{request.user.role}</td>
+                  <td className="message-cell" data-label="Message">{request.message}</td>
+                  <td data-label="Attachment">
                     {request.fileUrl ? (
                       <AuthFileLink path={request.fileUrl} token={token}>View file</AuthFileLink>
                     ) : (
                       <span className="muted">No file</span>
                     )}
                   </td>
-                  <td><StatusBadge status={request.status} /></td>
-                  <td>{formatDate(request.createdAt)}</td>
-                  <td className="table-actions">
+                  <td data-label="Status"><StatusBadge status={request.status} /></td>
+                  <td data-label="Created">{formatDate(request.createdAt)}</td>
+                  <td className="table-actions" data-label="Actions">
                     <ActionButton icon="clock" onClick={() => updateStatus(request.id, "reviewing")}>Review</ActionButton>
                     <ActionButton icon="check" tone="success" onClick={() => updateStatus(request.id, "resolved")}>Resolve</ActionButton>
                   </td>

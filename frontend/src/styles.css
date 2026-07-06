@@ -1327,7 +1327,9 @@ select:focus {
 }
 
 .student-mobile-bottom-nav,
-.student-mobile-menu-backdrop {
+.student-mobile-menu-backdrop,
+.admin-mobile-bottom-nav,
+.admin-mobile-menu-backdrop {
   display: none;
 }
 
@@ -3461,7 +3463,7 @@ tbody tr:hover {
   justify-content: center;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1024px) {
   .lead-table-desktop {
     display: none;
   }
@@ -3471,53 +3473,307 @@ tbody tr:hover {
     gap: 14px;
   }
 
-  .lead-summary-strip {
+  .lead-summary-strip,
+  .admin-portal .summary-strip {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .lead-toolbar {
+  .lead-toolbar,
+  .admin-portal .admin-toolbar {
     grid-template-columns: 1fr;
   }
 
-  .admin-portal .sidebar-collapsible {
-    position: sticky;
-    top: 69px;
-    z-index: 12;
-    display: flex;
-    gap: 8px;
-    width: auto;
-    padding: 12px 14px;
-    overflow-x: auto;
-    overflow-y: hidden;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
+  .admin-portal .toolbar-actions {
+    grid-column: 1 / -1;
+    justify-content: stretch;
+    flex-direction: column;
+    align-items: stretch;
   }
 
-  .admin-portal .sidebar-collapsible::-webkit-scrollbar {
-    display: none;
+  .admin-portal .toolbar-actions .compact-button,
+  .admin-portal .toolbar-actions select,
+  .admin-portal .toolbar-actions .btn-secondary {
+    width: 100%;
+    min-height: 48px;
+    justify-content: center;
   }
 
-  .admin-portal .sidebar-collapsible button {
-    flex: 0 0 auto;
-    width: auto;
-    min-height: 44px;
-    margin: 0;
-    padding: 10px 14px;
-    white-space: nowrap;
-  }
-
-  .admin-portal .sidebar-collapsible button > span:last-child {
-    opacity: 1;
-    transform: none;
-    min-width: 0;
+  .admin-portal .toolbar-count {
+    justify-self: stretch;
+    text-align: center;
   }
 
   .admin-portal {
     grid-template-columns: 1fr;
+    min-height: calc(100vh - 69px);
   }
 
-  .admin-portal .workspace {
-    padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  .admin-portal .admin-desktop-sidebar {
+    display: none;
+  }
+
+  .admin-portal .admin-workspace {
+    padding: 16px;
+    padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .admin-portal .dashboard-grid,
+  .admin-portal .admin-kpi-grid,
+  .admin-portal .analytics-grid,
+  .admin-portal .content-grid,
+  .admin-portal .settings-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-portal .dashboard-insight-card,
+  .admin-portal .chart-card,
+  .admin-portal .wide-card {
+    grid-column: auto;
+  }
+
+  .admin-portal .dashboard-quick-actions {
+    flex-direction: column;
+  }
+
+  .admin-portal .dashboard-quick-actions .compact-button,
+  .admin-portal .dashboard-quick-actions .btn-secondary {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .partner-overview-card {
+    flex-direction: column;
+    padding: 18px;
+  }
+
+  .partner-metrics {
+    min-width: 0;
+    width: 100%;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-portal .panel-form,
+  .admin-portal .edit-panel {
+    padding: 16px;
+  }
+
+  .admin-portal .detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-portal .table-wrap.professional-table {
+    overflow: visible;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .admin-portal .admin-responsive-table {
+    min-width: 0;
+  }
+
+  .admin-portal .admin-responsive-table thead {
+    display: none;
+  }
+
+  .admin-portal .admin-responsive-table,
+  .admin-portal .admin-responsive-table tbody {
+    display: block;
+    width: 100%;
+  }
+
+  .admin-portal .admin-responsive-table tr {
+    display: block;
+    margin-bottom: 14px;
+    padding: 14px;
+    border: 1px solid rgba(168, 240, 96, 0.16);
+    border-radius: 18px;
+    background:
+      radial-gradient(circle at 100% 0%, rgba(168, 240, 96, 0.07), transparent 12rem),
+      rgba(255, 255, 255, 0.03);
+  }
+
+  .admin-portal .admin-responsive-table tr.attention-row {
+    border-color: rgba(255, 209, 102, 0.28);
+    background: rgba(255, 209, 102, 0.05);
+  }
+
+  .admin-portal .admin-responsive-table td {
+    display: grid;
+    grid-template-columns: minmax(92px, 34%) 1fr;
+    gap: 10px;
+    align-items: start;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    text-align: left;
+  }
+
+  .admin-portal .admin-responsive-table td:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  .admin-portal .admin-responsive-table td::before {
+    content: attr(data-label);
+    color: var(--muted);
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    line-height: 1.4;
+  }
+
+  .admin-portal .admin-responsive-table td.message-cell {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-portal .admin-responsive-table td.message-cell::before {
+    margin-bottom: 2px;
+  }
+
+  .admin-portal .admin-responsive-table td.table-actions {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .admin-portal .admin-responsive-table .table-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .admin-portal .admin-responsive-table .action-button,
+  .admin-portal .admin-responsive-table .link-button {
+    width: 100%;
+    min-height: 44px;
+    justify-content: center;
+  }
+
+  .admin-mobile-bottom-nav {
+    position: fixed;
+    left: 12px;
+    right: 12px;
+    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    z-index: 55;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 6px;
+    padding: 8px;
+    border: 1px solid rgba(168, 240, 96, 0.22);
+    border-radius: 24px;
+    background: rgba(7, 8, 7, 0.94);
+    backdrop-filter: blur(18px);
+    box-shadow: 0 22px 70px rgba(0, 0, 0, 0.56);
+  }
+
+  .admin-mobile-bottom-nav button {
+    min-width: 0;
+    display: grid;
+    justify-items: center;
+    gap: 4px;
+    padding: 9px 4px;
+    border: 1px solid transparent;
+    border-radius: 17px;
+    background: transparent;
+    color: var(--muted);
+    font-size: 0.64rem;
+    font-weight: 800;
+    text-transform: capitalize;
+  }
+
+  .admin-mobile-bottom-nav button.active {
+    border-color: rgba(168, 240, 96, 0.32);
+    background: rgba(168, 240, 96, 0.12);
+    color: var(--green);
+  }
+
+  .admin-mobile-bottom-nav svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .admin-mobile-menu-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    display: grid;
+    align-items: end;
+    padding: 14px 14px calc(96px + env(safe-area-inset-bottom, 0px));
+    background: rgba(0, 0, 0, 0.58);
+    backdrop-filter: blur(10px);
+    overscroll-behavior: contain;
+  }
+
+  .admin-mobile-menu {
+    width: 100%;
+    max-height: min(72vh, 560px);
+    overflow: auto;
+    overscroll-behavior: contain;
+    padding: 18px;
+    border: 1px solid rgba(168, 240, 96, 0.24);
+    border-radius: 26px;
+    background:
+      radial-gradient(circle at 88% 8%, rgba(168, 240, 96, 0.12), transparent 18rem),
+      linear-gradient(145deg, rgba(18, 18, 18, 0.98), rgba(5, 5, 5, 0.98));
+    box-shadow: 0 28px 90px rgba(0, 0, 0, 0.62);
+    animation: mobileMenuIn 0.22s ease both;
+  }
+
+  .admin-mobile-menu-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 16px;
+  }
+
+  .admin-mobile-menu-header h2,
+  .admin-mobile-menu-header p {
+    margin: 0;
+  }
+
+  .admin-mobile-menu-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .admin-mobile-menu-grid button {
+    min-height: 58px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 13px;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--white);
+    font-weight: 800;
+    text-align: left;
+    text-transform: capitalize;
+  }
+
+  .admin-mobile-menu-grid button.active {
+    border-color: rgba(168, 240, 96, 0.42);
+    background: rgba(168, 240, 96, 0.12);
+    color: var(--green);
+  }
+
+  .admin-mobile-menu-grid svg {
+    width: 20px;
+    height: 20px;
+    flex: 0 0 auto;
+  }
+
+  .toast {
+    left: 16px;
+    right: 16px;
+    top: auto;
+    bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+    max-width: none;
+  }
+
+  .topbar nav {
+    gap: 10px;
   }
 }
 
